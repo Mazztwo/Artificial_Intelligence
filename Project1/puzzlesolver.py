@@ -80,7 +80,7 @@ def bfs(config_filename):
     #X   if EMPTY?(frontier) then return failure
     #X   curr_node <-- POP(frontier) /*chooses the shallowest node in frontier */ 
     #X   add curr_node.STATE to explored
-    #   for each action in problem.ACTIONS(curr_node.STATE) do
+    #X   for each action in problem.ACTIONS(curr_node.STATE) do
     #       child <-- CHILD-NODE(problem,curr_node,action)
     #       if child.STATE is not in explored or frontier then
     #           if problem.GOAL-TEST(child.STATE) then return SOLUTION(child) 
@@ -103,6 +103,11 @@ def bfs(config_filename):
             actions = twoJugsGetActions(curr_node.state, jugs)
 
         print "Actions: ", actions
+
+        for action in actions:
+            # child <-- CHILD-NODE(problem,curr_node,action)
+            pass
+
 
 
 
@@ -180,6 +185,13 @@ def twoJugsGetActions(state_str, jugs_str):
 
 def threeJugsGetActions(state, jugs):
     pass
+
+
+def twoJugsGetChildNode():
+    pass
+
+    # newState[0] = max(0, (state[0] - (capacity2 - state[1])) )
+    # newState[1] = min(capacity2, (state[1]+state[0]) )
 
 def jugsGoalTest(node, goal_state):
     if ( node.state == goal_state ):
