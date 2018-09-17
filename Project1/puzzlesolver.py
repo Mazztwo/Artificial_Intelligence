@@ -13,7 +13,7 @@
 
 
 import sys
-from Queue import *
+from collections import deque
 
 class Node:
     def __init__(self, state, parent, action, path_cost):
@@ -45,21 +45,29 @@ def bfs(config_filename):
     goal_state = configuration[3].strip()
     print("Goal state: %s" % goal_state)
 
+    # Time --> Total number of nodes created
+    time = 0
+
     # node <- a node with STATE = problem.initial-state, pathcost = 0
     root = Node(initial_state,None,None,0)
+    time += 1
 
     # if problem.GOAL-TEST(node.STATE) then return SOLUTION(node)
     if ( puzzle == "jugs" ):
         isGoalState = jugsGoalTest(root.state, goal_state)
         if ( isGoalState ):
-            printSolution(root, 0, 0, 0)
+            printSolution(root, time, 0, 0)
  
+    # biggest size that frontier list grows to
+    space_frontier = 0
+
     # Frontier needs to be a FIFO queue.
     # New nodes go to back of queue.
     # Old nodes get expanded first from the front of the queue.
     # frontier <- a FIFO queue that stores nodes
-    frontier = Queue()
-    frontier.put(root)
+    frontier = deque([])
+    frontier.append(root)
+    space_frontier += 1
 
     # explored stores states
     explored = {}
@@ -81,12 +89,12 @@ def bfs(config_filename):
     #           frontier <-- INSERT(child,frontier)
     keep_going = True
     while ( keep_going ):
-        if ( frontier.empty() ): 
+        if ( len(frontier) == 0 ): 
             printSolution(-1,0,0,0)
             return
 
         # Get the current node from frontier
-        curr_node = frontier.get()
+        curr_node = frontier.popleft()
 
         # Add current node's state to explored
         explored[counter] = curr_node.state
@@ -100,34 +108,27 @@ def bfs(config_filename):
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
             child = twoJugsGetChildNode(curr_node, jugs, action)
+            time += 1
 
             # if child.STATE is not in explored or frontier then
             #   if problem.GOAL-TEST(child.STATE) then return SOLUTION(child) 
             #   frontier <-- INSERT(child,frontier)
-
             child_state = child.state
 
             # Check that state is not in explored --> or frontier...? How to check for value in queue...?
             if ( child_state not in explored.values() ):
                 # Goal Test
                 if ( jugsGoalTest(child_state, goal_state) ): 
-                    printSolution(child, 0,0,0)
+                    printSolution(child, time, space_frontier,len(explored))
                     return
-                    
-
-                frontier.put(child)
-
-        
-
-
-
-
-
-    # Goal test for each node done when node is generated 
-    # and NOT when it is selected for expansion.
-
-    # For each new puzzle type, you should only need to modify the functions 
-    # relevant to setting up its state space search (e.g., get-successor-states, and goal-test, etc.)
+                
+                # Add child to frontier
+                frontier.append(child)
+            
+                # update space_frontier
+                frontier_len = len(frontier)
+                if ( frontier_len > space_frontier ):
+                    space_frontier = frontier_len
 
 
 # Given a state, this function will return all possible actions for the jug puzzle
@@ -298,7 +299,7 @@ def printSolution(solution_node, time, space_frontier, space_explored):
     #
     print("\n")
     print("Solution path:")
-    
+
     # Hold solution path in order
     solution_path = []
 
@@ -311,8 +312,13 @@ def printSolution(solution_node, time, space_frontier, space_explored):
     while ( len(solution_path) != 0 ):
         print(solution_path.pop())
 
-    
-    
+    print "Time: ", time
+    print "Space - Frontier: ", space_frontier
+
+    if (space_explored == -1 ):
+        space_explored = "explored list not used"
+
+    print "Space - Explored: ", space_explored
 
 
 
