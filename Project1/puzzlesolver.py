@@ -52,8 +52,7 @@ def bfs(config_filename):
     if ( puzzle == "jugs" ):
         isGoalState = jugsGoalTest(root.state, goal_state)
         if ( isGoalState ):
-            print("Jugs goal state found at root!")
-            return root
+            printSolution(root, 0, 0, 0)
  
     # Frontier needs to be a FIFO queue.
     # New nodes go to back of queue.
@@ -83,9 +82,9 @@ def bfs(config_filename):
     keep_going = True
     while ( keep_going ):
         if ( frontier.empty() ): 
-            return "No solution."
+            printSolution(-1,0,0,0)
+            return
 
-        
         # Get the current node from frontier
         curr_node = frontier.get()
 
@@ -112,8 +111,9 @@ def bfs(config_filename):
             if ( child_state not in explored.values() ):
                 # Goal Test
                 if ( jugsGoalTest(child_state, goal_state) ): 
-                    print("Goal state found!")
+                    printSolution(child, 0,0,0)
                     return
+                    
 
                 frontier.put(child)
 
@@ -277,7 +277,43 @@ def jugsGoalTest(state, goal_state):
     else:
         return False
 
+
+# This method will print the solution to the console.
+# Inputs:
+#   solution_node = node that contains the goal state. If -1, no solution found.
+#   time = total number of nodes created in search algorithm
+#   space_frontier = biggest size that frontier list grew
+#   space_explored = biggest size that explored list grew. If algorithm did not
+#                    use a frontier list, this argument should be -1.
+# Outputs:
+#   None
+def printSolution(solution_node, time, space_frontier, space_explored):
     
+    # Check if solution node = -1
+    if ( solution_node == -1 ):
+        print("\nNo solution.")
+        return
+    
+    # Print appropirate information to console.
+    #
+    print("\n")
+    print("Solution path:")
+    
+    # Hold solution path in order
+    solution_path = []
+
+    # Extract path from root to solution
+    while ( solution_node != None ):
+        solution_path.append(solution_node.state)
+        solution_node = solution_node.parent
+
+    # Print solution path, one state per line.
+    while ( len(solution_path) != 0 ):
+        print(solution_path.pop())
+
+    
+    
+
 
 
 
@@ -291,18 +327,11 @@ def main(argv):
     if ( len(argv) > 3 ):
         heuristic_function = argv[3]
 
-    print("\n")
-    print("Configuration file name: %s" % config_filename)
-    print("Search algorithm name: %s" % search_algorithm)
-    if ( heuristic_function != None ):
-        print("Heuristic function: %s" % heuristic_function)
-    print("\n")
-
     
     #################################################################
     
-
-    bfs(config_filename)
+    if ( search_algorithm == "bfs" ):
+        bfs(config_filename)
 
 
     #################################################################
