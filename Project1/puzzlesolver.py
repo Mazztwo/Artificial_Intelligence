@@ -50,22 +50,17 @@ def bfs(config_filename):
 
     # if problem.GOAL-TEST(node.STATE) then return SOLUTION(node)
     if ( puzzle == "jugs" ):
-        isGoalState = jugsGoalTest(root, goal_state)
-
+        isGoalState = jugsGoalTest(root.state, goal_state)
         if ( isGoalState ):
             print("Jugs goal state found at root!")
             return root
-        else:
-            print("Jugs goal state NOT found at root!")
-
-
+ 
     # Frontier needs to be a FIFO queue.
     # New nodes go to back of queue.
     # Old nodes get expanded first from the front of the queue.
     # frontier <- a FIFO queue that stores nodes
     frontier = Queue()
     frontier.put(root)
-    print("Frontier size: %d" % frontier.qsize())
 
     # explored stores states
     explored = {}
@@ -81,7 +76,7 @@ def bfs(config_filename):
     #X   curr_node <-- POP(frontier) /*chooses the shallowest node in frontier */ 
     #X   add curr_node.STATE to explored
     #X   for each action in problem.ACTIONS(curr_node.STATE) do
-    #       child <-- CHILD-NODE(problem,curr_node,action)
+    #X       child <-- CHILD-NODE(problem,curr_node,action)
     #       if child.STATE is not in explored or frontier then
     #           if problem.GOAL-TEST(child.STATE) then return SOLUTION(child) 
     #           frontier <-- INSERT(child,frontier)
@@ -89,6 +84,7 @@ def bfs(config_filename):
     while ( keep_going ):
         if ( frontier.empty() ): 
             return "No solution."
+
         
         # Get the current node from frontier
         curr_node = frontier.get()
@@ -102,11 +98,26 @@ def bfs(config_filename):
             jugs = configuration[1].strip()
             actions = twoJugsGetActions(curr_node.state, jugs)
 
-        print "Actions: ", actions
-
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
-            pass
+            child = twoJugsGetChildNode(curr_node, jugs, action)
+
+            # if child.STATE is not in explored or frontier then
+            #   if problem.GOAL-TEST(child.STATE) then return SOLUTION(child) 
+            #   frontier <-- INSERT(child,frontier)
+
+            child_state = child.state
+
+            # Check that state is not in explored --> or frontier...? How to check for value in queue...?
+            if ( child_state not in explored.values() ):
+                # Goal Test
+                if ( jugsGoalTest(child_state, goal_state) ): 
+                    print("Goal state found!")
+                    return
+
+                frontier.put(child)
+
+        
 
 
 
@@ -138,11 +149,8 @@ def bfs(config_filename):
 def twoJugsGetActions(state_str, jugs_str):
 
     # Turn jugs string and state into numerical tuples
-    tmp = jugs_str.replace('(', '').replace(')','').split(",")
-    jugs = ( int(tmp[0]), int(tmp[1]) )
-
-    tmp = state_str.replace('(', '').replace(')','').split(",")
-    state = ( int(tmp[0]), int(tmp[1]) )
+    jugs = stringToTuple(jugs_str, 2)
+    state = stringToTuple(state_str, 2)
 
     # Create empty actions array
     actions = []
@@ -163,7 +171,15 @@ def twoJugsGetActions(state_str, jugs_str):
         # Empty jug1 to ground
         actions.append("010")
         # Empty jug1 into jug2 if jug2 is empty or not at capacity
-        if ( jug2 < capacity ):
+        if ( jug2 < capacity2 ):
+            # Empty jug1 into jug2
+            actions.append("012")
+    # Check if jug1 is at capacity
+    if ( jug1 == capacity1 ):
+        # Empty jug1 to ground
+        actions.append("010")
+        # Empty jug1 into jug2 if jug2 is empty or not at capacity
+        if ( jug2 < capacity2 ):
             # Empty jug1 into jug2
             actions.append("012")
     # Check if jug2 is empty
@@ -177,8 +193,16 @@ def twoJugsGetActions(state_str, jugs_str):
         # Empty jug2 to ground
         actions.append("020")
         # Empty jug2 into jug1 if jug1 is empty or not at capacity
-        if ( jug1 < capacity ):
+        if ( jug1 < capacity1 ):
             # Empty jug1 into jug2
+            actions.append("021")
+    # Check if jug2 is at capacity
+    if ( jug2 == capacity2 ):
+        # Empty jug2 to ground
+        actions.append("020")
+        # Empty jug2 into jug1 if jug1 is empty or not at capacity
+        if ( jug1 < capacity1 ):
+            # Empty jug2 into jug1
             actions.append("021")
 
     return actions
@@ -187,14 +211,68 @@ def threeJugsGetActions(state, jugs):
     pass
 
 
-def twoJugsGetChildNode():
-    pass
+def twoJugsGetChildNode(curr_node, jugs_str, action):
+    
+    # Get node state
+    state_str = curr_node.state
 
-    # newState[0] = max(0, (state[0] - (capacity2 - state[1])) )
-    # newState[1] = min(capacity2, (state[1]+state[0]) )
+    # Turn jugs string and state into numerical tuples
+    jugs = stringToTuple(jugs_str, 2)
+    state = stringToTuple(state_str, 2)
 
-def jugsGoalTest(node, goal_state):
-    if ( node.state == goal_state ):
+    jug1 = state[0]
+    jug2 = state[1] 
+    capacity1 = jugs[0]
+    capacity2 = jugs[1]
+
+    if ( action[0] == '0' ): # empty the jug
+        if ( action[1] == '1' ): # empty jug1
+            if ( action[2] == '0' ): # empty jug1 to ground
+                new_state = (0, jug2)
+            elif ( action[2] == '2' ): # empty jug1 into jug2
+                new_state = ( max(0, (jug1-(capacity2-jug2))), min(capacity2, (jug2+jug1)) )
+        elif ( action[1] == '2' ): # empty jug2 
+            if ( action[2] == '0' ): # empty jug2 to ground
+                new_state = (jug1, 0)
+            elif ( action[2] == '1' ): # empty jug2 into jug1
+                new_state = ( max(0, (jug2-(capacity1-jug1))), min(capacity1, (jug1+jug2)) )
+    elif ( action[0] == '1' ): # fill the jug
+        if ( action[1] == '1' ): # fill jug1 from tap
+            new_state = (capacity1, jug2)
+        elif ( action[1] == '2' ): # fill jug2 from tap
+            new_state = (jug1, capacity2)
+
+    # Convert numerical tuple to string
+    state_str = tupleToString(new_state, 2)
+
+    # Create child node
+    child_node = Node(state_str, curr_node, action, 0)
+
+    return child_node
+
+
+def tupleToString(tup, num_args):
+    if ( num_args == 2):
+        tuple_str = "(" + str(tup[0]) + ", " + str(tup[1]) + ")"
+    else: # num_args == 3
+        tuple_str = "(" + str(tup[0]) + ", " + str(tup[1]) + ", " + str(tup[2]) + ")"
+
+    return tuple_str
+
+def stringToTuple(tuple_str, num_args):
+    if ( num_args == 2):
+        tmp = tuple_str.replace('(', '').replace(')','').split(",")
+        tup = ( int(tmp[0]), int(tmp[1]) )
+    else: # num_args == 3
+        tmp = tuple_str.replace('(', '').replace(')','').split(",")
+        tup = ( int(tmp[0]), int(tmp[1]), int(tmp[2]) )
+
+    return tup
+
+
+
+def jugsGoalTest(state, goal_state):
+    if ( state == goal_state ):
         return True
     else:
         return False
