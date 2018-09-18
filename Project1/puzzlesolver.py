@@ -109,7 +109,8 @@ def bfs(config_filename):
             # Check that state is not in explored --> or frontier...? How to check for value in queue...?
             if ( child_state not in explored.values() ):
                 # Goal Test
-                if ( jugsGoalTest(child_state, goal_state) ): 
+                isGoalState = goalTest(puzzle, configuration, child_state , goal_state)
+                if ( isGoalState ): 
                     printSolution(child, time, space_frontier,len(explored))
                     return
                 
@@ -240,7 +241,7 @@ def threeJugsGetActions(state_str, jugs_str):
             # Empty jug1 into jug2
             actions.append(7)
         # Empty jug1 into jug3 if jug3 is empty or not at capacity
-         if ( jug3 < capacity3 ):
+        if ( jug3 < capacity3 ):
             # Empty jug1 into jug3
             actions.append(8)       
     # Check if jug1 is at capacity
@@ -300,7 +301,7 @@ def threeJugsGetActions(state_str, jugs_str):
             # Empty jug1 into jug2
             actions.append(11)
         # Empty jug3 into jug2 if jug2 is empty or not at capacity
-         if ( jug2 < capacity2 ):
+        if ( jug2 < capacity2 ):
             # Empty jug1 into jug3
             actions.append(12)       
     # Check if jug3 is at capacity
@@ -315,11 +316,6 @@ def threeJugsGetActions(state_str, jugs_str):
         if ( jug2 < capacity2 ):
             # Empty jug3 into jug2
             actions.append(12)    
-
-
-
-
-
 
 def twoJugsGetChildNode(curr_node, jugs_str, action):
     
@@ -345,7 +341,7 @@ def twoJugsGetChildNode(curr_node, jugs_str, action):
             if ( action[2] == '0' ): # empty jug2 to ground
                 new_state = (jug1, 0)
             elif ( action[2] == '1' ): # empty jug2 into jug1
-                new_state = ( max(0, (jug2-(capacity1-jug1))), min(capacity1, (jug1+jug2)) )
+                new_state = ( min(capacity1, (jug1+jug2)), max(0, (jug2-(capacity1-jug1))) )
     elif ( action[0] == '1' ): # fill the jug
         if ( action[1] == '1' ): # fill jug1 from tap
             new_state = (capacity1, jug2)
@@ -361,7 +357,79 @@ def twoJugsGetChildNode(curr_node, jugs_str, action):
     return child_node
 
 def threeJugsGetChildNode(curr_node, jugs_str, action):
-    pass
+        
+    # jugs = (jug1, jug2, jug3) 
+    # Possible actions:
+    #   1) fill jug1   4) empty jug1  7) pour jug1 into jug2    10) pour jug2 into jug3
+    #   2) fill jug2   5) empty jug2  8) pour jug1 into jug3    11) pour jug3 into jug1
+    #   3) fill jug3   6) empty jug3  9) pour jug2 into jug1    12) pour jug3 into jug2
+
+    # Get node state
+    state_str = curr_node.state
+
+    # Turn jugs string and state into numerical tuples
+    jugs = stringToTuple(jugs_str, 3)
+    state = stringToTuple(state_str, 3)
+
+    jug1 = state[0]
+    jug2 = state[1] 
+    jug3 = state[2]
+    capacity1 = jugs[0]
+    capacity2 = jugs[1]
+    capacity3 = jugs[2]
+
+    if ( action[0] == '0' ): # empty the jug
+        if ( action[1] == '1' ): # empty jug1
+            if ( action[2] == '0' ): # empty jug1 to ground
+                new_state = (0, jug2)
+            elif ( action[2] == '2' ): # empty jug1 into jug2
+                new_state = ( max(0, (jug1-(capacity2-jug2))), min(capacity2, (jug2+jug1)) )
+        elif ( action[1] == '2' ): # empty jug2 
+            if ( action[2] == '0' ): # empty jug2 to ground
+                new_state = (jug1, 0)
+            elif ( action[2] == '1' ): # empty jug2 into jug1
+                new_state = ( min(capacity1, (jug1+jug2)), max(0, (jug2-(capacity1-jug1))) )
+    elif ( action[0] == '1' ): # fill the jug
+        if ( action[1] == '1' ): # fill jug1 from tap
+            new_state = (capacity1, jug2)
+        elif ( action[1] == '2' ): # fill jug2 from tap
+            new_state = (jug1, capacity2)
+
+
+    if ( action == 1 ):     # fill jug1 from tap
+        new_state = (capacity1, jug2, jug3)
+    elif ( action == 2 ):   # fill jug2 from tap
+        new_state = (jug1, capacity2, jug3)
+    elif ( action == 3 ):   # fill jug3 from tap
+        new_state = (jug1, jug2, capacity3)
+    elif ( action == 4 ):   # empty jug1 to ground
+        new_state = (0, jug2, jug3)
+    elif ( action == 5 ):   # empty jug2 to ground
+        new_state = (jug1, 0, jug3)
+    elif ( action == 6 ):   # empty jug3 to ground
+        new_state = (jug1, jug2, 0)
+    elif ( action == 7 ):   # pour jug1 into jug2
+        new_state = ( max(0, (jug1-(capacity2-jug2))), min(capacity2, (jug2+jug1)), jug3 )
+    elif ( action == 8 ):   # pour jug1 into jug3
+
+    elif ( action == 9 ):   # pour jug2 into jug1
+
+    elif ( action == 10 ):  # pour jug2 into jug3
+        
+    elif ( action == 11 ):  # pour jug3 into jug1
+        pass
+    else: # action == 12      pour jug3 into jug2
+        pass
+        
+
+
+    # Convert numerical tuple to string
+    state_str = tupleToString(new_state, 2)
+
+    # Create child node
+    child_node = Node(state_str, curr_node, action, 0)
+
+    return child_node
 
 def tupleToString(tup, num_args):
     if ( num_args == 2):
@@ -430,8 +498,15 @@ def getActions(puzzle, configuration, curr_node):
  
      # Get actions
     if ( puzzle == 'jugs' ):
+        # Check if problem is 2 jugs or 3 jugs
         jugs = configuration[1].strip()
-        actions = twoJugsGetActions(curr_node.state, jugs)
+        tmp = jugs.replace('(', '').replace(')','').split(",")
+        num_jugs = len(tmp)
+
+        if ( num_jugs == 2 ): 
+            actions = twoJugsGetActions(curr_node.state, jugs)
+        else:
+            actions = threeJugsGetActions(curr_node.state, jugs)
 
 
     return actions
