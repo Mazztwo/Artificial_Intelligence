@@ -100,14 +100,11 @@ def bfs(config_filename):
         explored[counter] = curr_node.state
         counter += 1
 
-        # Get actions
-        if ( puzzle == 'jugs' ):
-            jugs = configuration[1].strip()
-            actions = twoJugsGetActions(curr_node.state, jugs)
+        actions = getActions(puzzle, configuration, curr_node)
 
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
-            child = twoJugsGetChildNode(curr_node, jugs, action)
+            child = getChildNode(puzzle, configuration, curr_node, action)
             time += 1
 
             # if child.STATE is not in explored or frontier then
@@ -271,7 +268,6 @@ def stringToTuple(tuple_str, num_args):
     return tup
 
 
-
 def jugsGoalTest(state, goal_state):
     if ( state == goal_state ):
         return True
@@ -320,8 +316,23 @@ def printSolution(solution_node, time, space_frontier, space_explored):
 
     print "Space - Explored: ", space_explored
 
+def getActions(puzzle, configuration, curr_node):
+ 
+     # Get actions
+    if ( puzzle == 'jugs' ):
+        jugs = configuration[1].strip()
+        actions = twoJugsGetActions(curr_node.state, jugs)
 
 
+    return actions
+
+def getChildNode(puzzle, configuration, curr_node, action):
+
+    if ( puzzle == "jugs" ):
+        jugs = configuration[1].strip()
+        child = twoJugsGetChildNode(curr_node, jugs, action)
+
+    return child
 
 def main(argv):
 
