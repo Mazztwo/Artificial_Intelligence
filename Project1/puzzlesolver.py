@@ -35,15 +35,10 @@ def bfs(config_filename):
 
     # Read in puzzle type
     puzzle = configuration[0].strip()
-    print("Puzzle type: %s" % puzzle)
-
     # Read in initial state on line 3
     initial_state = configuration[2].strip()
-    print("Initial state: %s" % initial_state)
-
     # Read in goal state on line 4
     goal_state = configuration[3].strip()
-    print("Goal state: %s" % goal_state)
 
     # Time --> Total number of nodes created
     time = 0
@@ -53,10 +48,9 @@ def bfs(config_filename):
     time += 1
 
     # if problem.GOAL-TEST(node.STATE) then return SOLUTION(node)
-    if ( puzzle == "jugs" ):
-        isGoalState = jugsGoalTest(root.state, goal_state)
-        if ( isGoalState ):
-            printSolution(root, time, 0, 0)
+    isGoalState = goalTest(puzzle, configuration, root.state, goal_state)
+    if ( isGoalState ):
+        printSolution(root, time, 0, 0)
  
     # biggest size that frontier list grows to
     space_frontier = 0
@@ -127,24 +121,25 @@ def bfs(config_filename):
                 if ( frontier_len > space_frontier ):
                     space_frontier = frontier_len
 
-
-# Given a state, this function will return all possible actions for the jug puzzle
-# state = (x, y)
-# jugs = (x, y)
-# encoding: XYZ
-#   X = action
-#       empty = 0
-#       fill = 1
-#   Y = which jug
-#       jug1 = 1
-#       jug2 = 2
-#   Z = destination
-#       ground = 0
-#       jug1 = 1
-#       jug2 = 2
-# EX: 012 --> empty jug1 into jug2
-# EX: 110 --> fill jug1 from tap
+# Given a state, this function will return all possible actions for the 2 jug puzzle
 def twoJugsGetActions(state_str, jugs_str):
+
+    # state = (x, y)
+    # jugs = (x, y)
+    # encoding: XYZ
+    #   X = action
+    #       empty = 0
+    #       fill = 1
+    #   Y = which jug
+    #       jug1 = 1
+    #       jug2 = 2
+    #   Z = destination
+    #       ground = 0
+    #       jug1 = 1
+    #       jug2 = 2
+    # EX: 012 --> empty jug1 into jug2
+    # EX: 110 --> fill jug1 from tap
+
 
     # Turn jugs string and state into numerical tuples
     jugs = stringToTuple(jugs_str, 2)
@@ -153,6 +148,7 @@ def twoJugsGetActions(state_str, jugs_str):
     # Create empty actions array
     actions = []
 
+    # Extract relevant info
     jug1 = state[0]
     jug2 = state[1] 
     capacity1 = jugs[0]
@@ -192,7 +188,7 @@ def twoJugsGetActions(state_str, jugs_str):
         actions.append("020")
         # Empty jug2 into jug1 if jug1 is empty or not at capacity
         if ( jug1 < capacity1 ):
-            # Empty jug1 into jug2
+            # Empty jug2 into jug1
             actions.append("021")
     # Check if jug2 is at capacity
     if ( jug2 == capacity2 ):
@@ -205,8 +201,88 @@ def twoJugsGetActions(state_str, jugs_str):
 
     return actions
 
-def threeJugsGetActions(state, jugs):
-    pass
+# Given a state, this function will return all possible actions for the 3 jug
+def threeJugsGetActions(state_str, jugs_str):
+
+    # jugs = (jug1, jug2, jug3) 
+    # Possible actions:
+    #   1) fill jug1   4) empty jug1  7) pour jug1 into jug2    10) pour jug2 into jug3
+    #   2) fill jug2   5) empty jug2  8) pour jug1 into jug3    11) pour jug3 into jug1
+    #   3) fill jug3   6) empty jug3  9) pour jug2 into jug1    12) pour jug3 into jug2
+
+    # Turn jugs string and state into numerical tuples
+    jugs = stringToTuple(jugs_str, 3)
+    state = stringToTuple(state_str, 3)
+
+    # Create empty actions array
+    actions = []
+
+    # Extract relevant info
+    jug1 = state[0]
+    jug2 = state[1] 
+    jug3 = state[2]
+    capacity1 = jugs[0]
+    capacity2 = jugs[1]
+    capacity3 = jugs[2]
+
+        # Check if jug1 is empty
+    if ( jug1 == 0 ):
+        # Fill jug1 from tap
+        actions.append(1)
+    # Check if jug1 is not at capacity but not empty
+    if ( jug1 > 0 and jug1 < capacity1 ):
+        # Fill jug1 from tap
+        actions.append(1)
+        # Empty jug1 to ground
+        actions.append(4)
+        # Empty jug1 into jug2 if jug2 is empty or not at capacity
+        if ( jug2 < capacity2 ):
+            # Empty jug1 into jug2
+            actions.append(7)
+        # Empty jug1 into jug3 if jug3 is empty or not at capacity
+         if ( jug3 < capacity3 ):
+            # Empty jug1 into jug3
+            actions.append(8)       
+    # Check if jug1 is at capacity
+    if ( jug1 == capacity1 ):
+        # Empty jug1 to ground
+        actions.append(4)
+        # Empty jug1 into jug2 if jug2 is empty or not at capacity
+        if ( jug2 < capacity2 ):
+            # Empty jug1 into jug2
+            actions.append(7)
+        # Empty jug1 into jug3 if jug3 is empty or not at capacity
+        if ( jug3 < capacity3 ):
+            # Empty jug1 into jug3
+            actions.append(8)
+    
+    # ENDED HERE. ADD JUG3 STUFF BELOW!!
+    
+    # Check if jug2 is empty
+    if ( jug2 == 0 ):
+        # Fill jug2 from tap
+        actions.append(2)
+    # Check if jug2 is not at capacity but not empty
+    if ( jug2 > 0 and jug2 < capacity2 ):
+        # Fill jug2 from tap
+        actions.append(2)
+        # Empty jug2 to ground
+        actions.append(5)
+        # Empty jug2 into jug1 if jug1 is empty or not at capacity
+        if ( jug1 < capacity1 ):
+            # Empty jug2 into jug1
+            actions.append(9)
+    # Check if jug2 is at capacity
+    if ( jug2 == capacity2 ):
+        # Empty jug2 to ground
+        actions.append(5)
+        # Empty jug2 into jug1 if jug1 is empty or not at capacity
+        if ( jug1 < capacity1 ):
+            # Empty jug2 into jug1
+            actions.append(9)
+
+
+
 
 
 def twoJugsGetChildNode(curr_node, jugs_str, action):
@@ -248,6 +324,8 @@ def twoJugsGetChildNode(curr_node, jugs_str, action):
 
     return child_node
 
+def threeJugsGetChildNode(curr_node, jugs_str, action):
+    pass
 
 def tupleToString(tup, num_args):
     if ( num_args == 2):
@@ -266,7 +344,6 @@ def stringToTuple(tuple_str, num_args):
         tup = ( int(tmp[0]), int(tmp[1]), int(tmp[2]) )
 
     return tup
-
 
 def jugsGoalTest(state, goal_state):
     if ( state == goal_state ):
@@ -288,12 +365,10 @@ def printSolution(solution_node, time, space_frontier, space_explored):
     
     # Check if solution node = -1
     if ( solution_node == -1 ):
-        print("\nNo solution.")
+        print("No solution.")
         return
     
     # Print appropirate information to console.
-    #
-    print("\n")
     print("Solution path:")
 
     # Hold solution path in order
@@ -333,6 +408,15 @@ def getChildNode(puzzle, configuration, curr_node, action):
         child = twoJugsGetChildNode(curr_node, jugs, action)
 
     return child
+
+def goalTest(puzzle, configuration, curr_state, goal_state):
+
+    if ( puzzle == "jugs" ):
+        isGoalState = jugsGoalTest(curr_state, goal_state)
+        
+
+    return isGoalState
+
 
 def main(argv):
 
