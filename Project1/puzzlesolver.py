@@ -411,20 +411,19 @@ def threeJugsGetChildNode(curr_node, jugs_str, action):
     elif ( action == 7 ):   # pour jug1 into jug2
         new_state = ( max(0, (jug1-(capacity2-jug2))), min(capacity2, (jug2+jug1)), jug3 )
     elif ( action == 8 ):   # pour jug1 into jug3
-
+        new_state = ( max(0, (jug1-(capacity3-jug3))), jug2, min(capacity3, (jug3+jug1)))
     elif ( action == 9 ):   # pour jug2 into jug1
-
+        new_state = ( min(capacity1, (jug1+jug2)), max(0, (jug2-(capacity1-jug1))), jug3 )
     elif ( action == 10 ):  # pour jug2 into jug3
-        
+        new_state = ( jug1, max(0, (jug2-(capacity3-jug3))), min(capacity3, (jug3+jug2)) )
     elif ( action == 11 ):  # pour jug3 into jug1
-        pass
+        new_state = ( min(capacity1, (jug1+jug3)), jug2, max(0, (jug3-(capacity1-jug1))) )
     else: # action == 12      pour jug3 into jug2
-        pass
+        new_state = ( jug1, min(capacity2, (jug2+jug3)), max(0, (jug3-(capacity2-jug2))) )
         
-
 
     # Convert numerical tuple to string
-    state_str = tupleToString(new_state, 2)
+    state_str = tupleToString(new_state, 3)
 
     # Create child node
     child_node = Node(state_str, curr_node, action, 0)
