@@ -225,7 +225,7 @@ def threeJugsGetActions(state_str, jugs_str):
     capacity2 = jugs[1]
     capacity3 = jugs[2]
 
-        # Check if jug1 is empty
+    # Check if jug1 is empty
     if ( jug1 == 0 ):
         # Fill jug1 from tap
         actions.append(1)
@@ -254,10 +254,7 @@ def threeJugsGetActions(state_str, jugs_str):
         # Empty jug1 into jug3 if jug3 is empty or not at capacity
         if ( jug3 < capacity3 ):
             # Empty jug1 into jug3
-            actions.append(8)
-    
-    # ENDED HERE. ADD JUG3 STUFF BELOW!!
-    
+            actions.append(8)    
     # Check if jug2 is empty
     if ( jug2 == 0 ):
         # Fill jug2 from tap
@@ -272,6 +269,10 @@ def threeJugsGetActions(state_str, jugs_str):
         if ( jug1 < capacity1 ):
             # Empty jug2 into jug1
             actions.append(9)
+        # Empty jug2 into jug3 if jug3 is empty or not at capacity
+        if ( jug3 < capacity3 ):
+            # Empty jug2 into jug1
+            actions.append(10)
     # Check if jug2 is at capacity
     if ( jug2 == capacity2 ):
         # Empty jug2 to ground
@@ -280,6 +281,41 @@ def threeJugsGetActions(state_str, jugs_str):
         if ( jug1 < capacity1 ):
             # Empty jug2 into jug1
             actions.append(9)
+        # Empty jug2 into jug3 if jug3 is empty or not at capacity
+        if ( jug3 < capacity3 ):
+            # Empty jug2 into jug1
+            actions.append(10)
+    # Check if jug3 is empty
+    if ( jug3 == 0 ):
+        # Fill jug1 from tap
+        actions.append(3)
+    # Check if jug3 is not at capacity but not empty
+    if ( jug3 > 0 and jug3 < capacity3 ):
+        # Fill jug3 from tap
+        actions.append(3)
+        # Empty jug3 to ground
+        actions.append(6)
+        # Empty jug3 into jug1 if jug1 is empty or not at capacity
+        if ( jug1 < capacity1 ):
+            # Empty jug1 into jug2
+            actions.append(11)
+        # Empty jug3 into jug2 if jug2 is empty or not at capacity
+         if ( jug2 < capacity2 ):
+            # Empty jug1 into jug3
+            actions.append(12)       
+    # Check if jug3 is at capacity
+    if ( jug3 == capacity3 ):
+        # Empty jug3 to ground
+        actions.append(6)
+        # Empty jug3 into jug1 if jug1 is empty or not at capacity
+        if ( jug1 < capacity1 ):
+            # Empty jug3 into jug1
+            actions.append(11)
+        # Empty jug3 into jug2 if jug2 is empty or not at capacity
+        if ( jug2 < capacity2 ):
+            # Empty jug3 into jug2
+            actions.append(12)    
+
 
 
 
@@ -350,7 +386,6 @@ def jugsGoalTest(state, goal_state):
         return True
     else:
         return False
-
 
 # This method will print the solution to the console.
 # Inputs:
