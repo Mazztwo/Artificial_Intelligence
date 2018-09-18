@@ -51,6 +51,7 @@ def bfs(config_filename):
     isGoalState = goalTest(puzzle, configuration, root.state, goal_state)
     if ( isGoalState ):
         printSolution(root, time, 0, 0)
+        return
  
     # biggest size that frontier list grows to
     space_frontier = 0
@@ -317,6 +318,8 @@ def threeJugsGetActions(state_str, jugs_str):
             # Empty jug3 into jug2
             actions.append(12)    
 
+    return actions
+
 def twoJugsGetChildNode(curr_node, jugs_str, action):
     
     # Get node state
@@ -378,24 +381,6 @@ def threeJugsGetChildNode(curr_node, jugs_str, action):
     capacity2 = jugs[1]
     capacity3 = jugs[2]
 
-    if ( action[0] == '0' ): # empty the jug
-        if ( action[1] == '1' ): # empty jug1
-            if ( action[2] == '0' ): # empty jug1 to ground
-                new_state = (0, jug2)
-            elif ( action[2] == '2' ): # empty jug1 into jug2
-                new_state = ( max(0, (jug1-(capacity2-jug2))), min(capacity2, (jug2+jug1)) )
-        elif ( action[1] == '2' ): # empty jug2 
-            if ( action[2] == '0' ): # empty jug2 to ground
-                new_state = (jug1, 0)
-            elif ( action[2] == '1' ): # empty jug2 into jug1
-                new_state = ( min(capacity1, (jug1+jug2)), max(0, (jug2-(capacity1-jug1))) )
-    elif ( action[0] == '1' ): # fill the jug
-        if ( action[1] == '1' ): # fill jug1 from tap
-            new_state = (capacity1, jug2)
-        elif ( action[1] == '2' ): # fill jug2 from tap
-            new_state = (jug1, capacity2)
-
-
     if ( action == 1 ):     # fill jug1 from tap
         new_state = (capacity1, jug2, jug3)
     elif ( action == 2 ):   # fill jug2 from tap
@@ -421,7 +406,6 @@ def threeJugsGetChildNode(curr_node, jugs_str, action):
     else: # action == 12      pour jug3 into jug2
         new_state = ( jug1, min(capacity2, (jug2+jug3)), max(0, (jug3-(capacity2-jug2))) )
         
-
     # Convert numerical tuple to string
     state_str = tupleToString(new_state, 3)
 
@@ -448,8 +432,12 @@ def stringToTuple(tuple_str, num_args):
 
     return tup
 
-def jugsGoalTest(state, goal_state):
-    if ( state == goal_state ):
+def jugsGoalTest(state, goal_state, numJugs):
+
+    state_numerical = stringToTuple(state, numJugs)
+    goal_numerical = stringToTuple(goal_state, numJugs)
+
+    if ( state_numerical == goal_numerical ):
         return True
     else:
         return False
@@ -498,9 +486,8 @@ def getActions(puzzle, configuration, curr_node):
      # Get actions
     if ( puzzle == 'jugs' ):
         # Check if problem is 2 jugs or 3 jugs
+        num_jugs = getNumJugs(configuration)
         jugs = configuration[1].strip()
-        tmp = jugs.replace('(', '').replace(')','').split(",")
-        num_jugs = len(tmp)
 
         if ( num_jugs == 2 ): 
             actions = twoJugsGetActions(curr_node.state, jugs)
@@ -513,19 +500,33 @@ def getActions(puzzle, configuration, curr_node):
 def getChildNode(puzzle, configuration, curr_node, action):
 
     if ( puzzle == "jugs" ):
+        num_jugs = getNumJugs(configuration)
         jugs = configuration[1].strip()
-        child = twoJugsGetChildNode(curr_node, jugs, action)
+
+        if ( num_jugs == 2 ):
+            child = twoJugsGetChildNode(curr_node, jugs, action)
+        else: # num_jugs == 3
+            child = threeJugsGetChildNode(curr_node, jugs, action )
 
     return child
 
 def goalTest(puzzle, configuration, curr_state, goal_state):
 
     if ( puzzle == "jugs" ):
-        isGoalState = jugsGoalTest(curr_state, goal_state)
+        # Check if problem is 2 jugs or 3 jugs
+        num_jugs = getNumJugs(configuration)
+        isGoalState = jugsGoalTest(curr_state, goal_state, num_jugs)
         
 
     return isGoalState
 
+# Check if problem is 2 jugs or 3 jugs
+def getNumJugs(configuration):
+    jugs = configuration[1].strip()
+    tmp = jugs.replace('(', '').replace(')','').split(",")
+    num_jugs = len(tmp)
+
+    return num_jugs
 
 def main(argv):
 
