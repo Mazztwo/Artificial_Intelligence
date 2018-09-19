@@ -123,6 +123,52 @@ def bfs(config_filename):
                 if ( frontier_len > space_frontier ):
                     space_frontier = frontier_len
 
+def dfs(config_filename):
+
+     # Open, read in, and close it config file.
+    open_configuration = open(config_filename, 'r')
+    configuration = open_configuration.readlines()
+    open_configuration.close()
+
+    # Read in initial state on line 3
+    initial_state = configuration[2].strip()
+    # Read in goal state on line 4
+    goal_state = configuration[3].strip()
+
+    
+
+    # Call recursve dfs function
+    solution = dfs_rec(config_filename)
+    
+    isGoalState = goalTest(puzzle, configuration, solution.state , goal_state)
+    if ( isGoalState ): 
+        printSolution(child, time, space_frontier,len(explored))
+        return
+    else:
+        # If no solution is found, print no solution
+        printSolution(-1,0,0,0)
+
+def dfs_rec(config_filename):
+
+    # function DEPTH-LIMITED-SEARCH(problem) returns a solution, or failure 
+    #   return RECURSIVE-DLS(MAKE-NODE(problem.INITIAL-STATE),problem)
+
+    # function RECURSIVE-DLS(node,problem) returns a solution, or failure 
+    #   if problem.GOAL-TEST(node.STATE) then return SOLUTION(node)
+    #   else
+    #       for each action in problem.ACTIONS(node.STATE) do
+    #           child <--CHILD-NODE(problem,node,action) 
+    #           result <--RECURSIVE-DLS(child, problem)
+    #           if result != faliure then return result
+    #       return failure
+    pass
+
+
+
+
+
+    
+
 # Given a state, this function will return all possible actions for the 2 jug puzzle
 def twoJugsGetActions(state_str, jugs_str):
 
