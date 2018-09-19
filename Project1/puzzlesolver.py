@@ -28,17 +28,8 @@ class Node:
      
 def bfs(config_filename):
 
-    # Open, read in, and close it config file.
-    open_configuration = open(config_filename, 'r')
-    configuration = open_configuration.readlines()
-    open_configuration.close()
-
-    # Read in puzzle type
-    puzzle = configuration[0].strip()
-    # Read in initial state on line 3
-    initial_state = configuration[2].strip()
-    # Read in goal state on line 4
-    goal_state = configuration[3].strip()
+    # Read in config file and extract appropirate info
+    configuration, puzzle, initial_state, goal_state = readConfigFile(config_filename)
 
     # Time --> Total number of nodes created
     time = 0
@@ -107,8 +98,11 @@ def bfs(config_filename):
             #   frontier <-- INSERT(child,frontier)
             child_state = child.state
 
-            # Check that state is not in explored --> or frontier...? How to check for value in queue...?
-            if ( child_state not in explored.values() ):
+            # Check if node is in frontier
+            child_in_frontier = isNodeInFrontier(child, frontier)
+
+            # Check that state is not in explored or frontier
+            if ( child_state not in explored.values() and child_in_frontier is not True ):
                 # Goal Test
                 isGoalState = goalTest(puzzle, configuration, child_state , goal_state)
                 if ( isGoalState ): 
@@ -125,46 +119,79 @@ def bfs(config_filename):
 
 def dfs(config_filename):
 
-     # Open, read in, and close it config file.
-    open_configuration = open(config_filename, 'r')
-    configuration = open_configuration.readlines()
-    open_configuration.close()
+    # Read in config file and extract appropirate info
+    configuration, puzzle, initial_state, goal_state = readConfigFile(config_filename)
 
-    # Read in initial state on line 3
-    initial_state = configuration[2].strip()
-    # Read in goal state on line 4
-    goal_state = configuration[3].strip()
+    # Time --> Total number of nodes created
+    time = 0
 
-    
+    # node <- a node with STATE = problem.initial-state, pathcost = 0
+    root = Node(initial_state,None,None,0)
+    time += 1
 
-    # Call recursve dfs function
-    solution = dfs_rec(config_filename)
-    
-    isGoalState = goalTest(puzzle, configuration, solution.state , goal_state)
-    if ( isGoalState ): 
-        printSolution(child, time, space_frontier,len(explored))
+    # if problem.GOAL-TEST(node.STATE) then return SOLUTION(node)
+    isGoalState = goalTest(puzzle, configuration, root.state, goal_state)
+    if ( isGoalState ):
+        printSolution(root, time, 0, -1)
         return
-    else:
-        # If no solution is found, print no solution
-        printSolution(-1,0,0,0)
+ 
+    # biggest size that frontier list grows to
+    space_frontier = 0
 
-def dfs_rec(config_filename):
+    # Frontier needs to be a LIFO stack.
+    # New nodes go to next open index in array.
+    #   frontier.append(x) --> [x]
+    #   frontier.append(y) --> [x, y]
+    #   frontier.append(z) --> [x, y, z]
+    #   frontier.pop()     --> [x, y]
+    # Newest node get expanded first from the front(top, rightmost) of the stack
+    # frontier <- a LIFO stack that stores nodes
+    frontier = []
+    frontier.append(root)
+    space_frontier += 1
 
-    # function DEPTH-LIMITED-SEARCH(problem) returns a solution, or failure 
-    #   return RECURSIVE-DLS(MAKE-NODE(problem.INITIAL-STATE),problem)
+    #X loop do
+    #X   if EMPTY?(frontier) then return failure
+    #X   curr_node <-- POP(frontier) /*chooses the deepest node in frontier */ 
+    #X   add curr_node.STATE to explored
+    #X   for each action in problem.ACTIONS(curr_node.STATE) do
+    #X       child <-- CHILD-NODE(problem,curr_node,action)
+    #X       if child.STATE is not in frontier then
+    #X           if problem.GOAL-TEST(child.STATE) then return SOLUTION(child) 
+    #X           frontier <-- INSERT(child,frontier)
+    keep_going = True
+    while ( keep_going ):
+        if ( len(frontier) == 0 ): 
+            printSolution(-1,0,0,0)
+            return
 
-    # function RECURSIVE-DLS(node,problem) returns a solution, or failure 
-    #   if problem.GOAL-TEST(node.STATE) then return SOLUTION(node)
-    #   else
-    #       for each action in problem.ACTIONS(node.STATE) do
-    #           child <--CHILD-NODE(problem,node,action) 
-    #           result <--RECURSIVE-DLS(child, problem)
-    #           if result != faliure then return result
-    #       return failure
-    pass
+        # Get the current node from frontier
+        curr_node = frontier.pop()
 
+        actions = getActions(puzzle, configuration, curr_node)
 
+        for action in actions:
+            # child <-- CHILD-NODE(problem,curr_node,action)
+            child = getChildNode(puzzle, configuration, curr_node, action)
+            time += 1
 
+            # Check that state is not frontier
+            child_in_frontier = isNodeInFrontier(child, frontier)
+        
+            if ( child_in_frontier is not True):
+                # Goal Test
+                is_goal_state = goalTest(puzzle, configuration, child.state , goal_state)
+                if ( is_goal_state ): 
+                    printSolution(child, time, space_frontier,-1)
+                    return
+                
+                # Add child to frontier
+                frontier.append(child)
+            
+                # update space_frontier
+                frontier_len = len(frontier)
+                if ( frontier_len > space_frontier ):
+                    space_frontier = frontier_len
 
 
     
@@ -511,7 +538,7 @@ def printSolution(solution_node, time, space_frontier, space_explored):
     solution_path = []
 
     # Extract path from root to solution
-    while ( solution_node != None ):
+    while ( solution_node is not None ):
         solution_path.append(solution_node.state)
         solution_node = solution_node.parent
 
@@ -574,6 +601,51 @@ def getNumJugs(configuration):
 
     return num_jugs
 
+# This method reads in the .config file and returns information.
+# Inputs:
+#   config_filename = name of the configuration file from command line
+# Outputs:
+#   configuration = every line in config file given as a list
+#   puzzle = line 0 of configuration, which is always the puzzle type.
+#   initial_state = line 2 of the configuration, which always gives initial state.
+#   goal_stae = line 3 of the configuration, which always gives the goal_state.
+def readConfigFile(config_filename):
+    # Open, read in, and close it config file.
+    open_configuration = open(config_filename, 'r')
+    configuration = open_configuration.readlines()
+    open_configuration.close()
+
+    # Read in puzzle type
+    puzzle = configuration[0].strip()
+    # Read in initial state on line 3
+    initial_state = configuration[2].strip()
+    # Read in goal state on line 4
+    goal_state = configuration[3].strip()
+
+    return configuration, puzzle, initial_state, goal_state
+
+# Checks whether a node's state is in the frontier already.
+# Inputs:
+#   node = node to search for
+#   frontier = frontier list to be searched
+# Outputs:
+#   isInFrontier = boolean value set to whether or not the input node's
+#                  state is already in the frontier list.
+def isNodeInFrontier(node, frontier):
+    
+    node_state = node.state
+    parent = node.parent
+    isInFrontier = False
+
+    while ( parent is not None ):
+        if ( parent.state == node_state ):
+            isInFrontier = True
+            break
+        parent = parent.parent
+
+    return isInFrontier
+
+
 def main(argv):
 
     # Read in user input
@@ -589,6 +661,8 @@ def main(argv):
     
     if ( search_algorithm == "bfs" ):
         bfs(config_filename)
+    elif ( search_algorithm == "dfs" ):
+        dfs(config_filename)
 
 
     #################################################################

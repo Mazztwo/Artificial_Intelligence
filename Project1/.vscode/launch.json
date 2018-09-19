@@ -12,10 +12,7 @@
             "pythonPath": "/usr/bin/python",
             "program": "${file}",
             "cwd": "${workspaceFolder}",
-            "debugOptions": [
-                "RedirectOutput"
-            ],
-            "args": ["jugs.config", "bfs", "rawr"]
+            "args": ["jugs.config", "dfs", "rawr"]
         },
        
         {
