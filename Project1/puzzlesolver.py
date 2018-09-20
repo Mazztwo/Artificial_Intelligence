@@ -3,9 +3,7 @@
 # Alessio Mazzone
 # ALM388@pitt.edu
 #
-#
 # CS 1571 Aritificial Intelligence
-#
 #
 # Project 1 
 #
@@ -14,6 +12,7 @@
 
 import sys
 from collections import deque
+from Queue import PriorityQueue
 
 class Node:
     def __init__(self, state, parent, action, path_cost):
@@ -22,9 +21,28 @@ class Node:
         self.action = action
         self.path_cost = path_cost
 
-    # maybe..
-    def printNode(self):
-        print("NODE -- state: , parent: ")
+    def __lt__(self, other): 
+        return self.path_cost < other.path_cost
+
+    def __le__(self, other): 
+        return self.path_cost <= other.path_cost
+
+    def __eq__(self, other):
+        return self.path_cost == other.path_cost
+
+    def __ne__(self, other): 
+        return self.path_cost != other.path_cost
+
+    def __gt__(self, other): 
+        return self.path_cost > other.path_cost
+
+    def __ge__(self, other):
+        return self.path_cost >= other.path_cost
+
+
+
+
+
      
 def bfs(config_filename):
 
@@ -50,6 +68,15 @@ def bfs(config_filename):
     # Frontier needs to be a FIFO queue.
     # New nodes go to back of queue.
     # Old nodes get expanded first from the front of the queue.
+    # EX: frontier --> []
+    #     frontier.append(X)
+    #     frontier.append(Y)
+    #     frontier.append(Z)
+    #     frontier --> [X,Y,Z]
+    #     frontier.popleft = X
+    #     frontier --> [Y,Z]
+    #     frontier.append(A) 
+    #     frontier --> [Y,Z,A]
     # frontier <- a FIFO queue that stores nodes
     frontier = deque([])
     frontier.append(root)
@@ -76,10 +103,10 @@ def bfs(config_filename):
     keep_going = True
     while ( keep_going ):
         if ( len(frontier) == 0 ): 
-            printSolution(-1,0,0,0)
+            printSolution(Node(None,None,None,-1),0,0,0)
             return
 
-        # Get the current node from frontier
+        # Get the shallowest node from frontier
         curr_node = frontier.popleft()
 
         # Add current node's state to explored
@@ -99,7 +126,7 @@ def bfs(config_filename):
             child_state = child.state
 
             # Check if node is in frontier
-            child_in_frontier = isNodeInFrontier(child, frontier)
+            child_in_frontier = isNodeInFrontier(child, frontier, 0)
 
             # Check that state is not in explored or frontier
             if ( child_state not in explored.values() and child_in_frontier is not True ):
@@ -162,10 +189,10 @@ def dfs(config_filename):
     keep_going = True
     while ( keep_going ):
         if ( len(frontier) == 0 ): 
-            printSolution(-1,0,0,0)
+            printSolution(Node(None,None,None,-1),0,0,0)
             return
 
-        # Get the current node from frontier
+        # Get the deepest node from frontier
         curr_node = frontier.pop()
 
         actions = getActions(puzzle, configuration, curr_node)
@@ -175,10 +202,10 @@ def dfs(config_filename):
             child = getChildNode(puzzle, configuration, curr_node, action)
             time += 1
 
-            # Check that state is not frontier
-            child_in_frontier = isNodeInFrontier(child, frontier)
+            # Check that state is not in current path back to root
+            child_in_path = isNodeInPathToRoot(child)
         
-            if ( child_in_frontier is not True):
+            if ( child_in_path is not True):
                 # Goal Test
                 is_goal_state = goalTest(puzzle, configuration, child.state , goal_state)
                 if ( is_goal_state ): 
@@ -193,8 +220,123 @@ def dfs(config_filename):
                 if ( frontier_len > space_frontier ):
                     space_frontier = frontier_len
 
-
+def unicost(config_filename):
     
+    #   q = PriorityQueue()
+    #   q.put(5)
+    #   q.put(10)
+    #   q.put(1)
+    #   q.put(5)
+    #   print(q.queue) #[1,5,5,10]
+    #   q.get()
+    #   print(q.queue) #[5,5,10]
+    #   if(10 in q.queue):
+    #       print("raer") raer
+
+ 
+    # Read in config file and extract appropirate info
+    configuration, puzzle, initial_state, goal_state = readConfigFile(config_filename)
+
+    # Time --> Total number of nodes created
+    time = 0
+
+    # root <-- a node with STATE = problem.INITIAL-STATE, PATH-COST = 0
+    root = Node(initial_state,None,None,0)
+    time += 1
+
+    # if problem.GOAL-TEST(node.STATE) then return SOLUTION(node)
+    isGoalState = goalTest(puzzle, configuration, root.state, goal_state)
+    if ( isGoalState ):
+        printSolution(root, time, 0, 0)
+        return
+ 
+    # biggest size that frontier list grows to
+    space_frontier = 0
+
+    # Frontier needs to be a priority queue.
+    # Nodes added based on path cost. Less expensive nodes are left in the array, more expensive are right.
+    # [less expensive <----------> more expensive]
+    # EX: [1,5,10,20]
+    # Nodes get removed from the front(left) of the queue.
+    # frontier <-- a priority queue ordered by PATH-COST, with root as the only element for now 
+    frontier = PriorityQueue()
+    frontier.put(root)
+    space_frontier += 1
+
+    # explored stores states
+    explored = {}
+
+    # In the explored dictionary, we store [key:value] pairs. I don't really care what
+    # they key is, I just need a value. So, i'll just keep a counter variable and use that
+    # as the key whenever I add a new state to my explored list. Of course, I'll check and make
+    # sure that the state I want to add is not already in explored. 
+    counter = 0
+
+    #X   loop do
+    #X       if EMPTY?(frontier) then return failure
+    #X       node <-- POP(frontier) /*chooses the lowest-cost node in frontier */ 
+    #X       if problem.GOAL-TEST(node.STATE) then return SOLUTION(node) 
+    #X       add node.STATE to explored
+    #X       for each action in problem.ACTIONS(node.STATE) do
+    #X           child <-- CHILD-NODE(problem,node,action)
+    #X           if child.STATE is not in explored or frontier then
+    #X               frontier <-- INSERT(child,frontier)
+    #           else if child.STATE is in frontier with higher PATH-COST then
+    #               replace that frontier node with child
+    keep_going = True
+    while ( keep_going ):
+        if ( len(frontier.queue) == 0 ): 
+            printSolution(Node(None,None,None,-1),0,0,0)
+            return
+
+        # Get the lowest cost node from frontier
+        curr_node = frontier.get()
+
+        # Goal Test
+        isGoalState = goalTest(puzzle, configuration, curr_node.state , goal_state)
+        if ( isGoalState ): 
+            printSolution(curr_node, time, space_frontier,len(explored))
+            return
+
+        # Add current node's state to explored
+        explored[counter] = curr_node.state
+        counter += 1
+
+        actions = getActions(puzzle, configuration, curr_node)
+
+        for action in actions:
+            # child <-- CHILD-NODE(problem,curr_node,action)
+            child = getChildNode(puzzle, configuration, curr_node, action)
+            time += 1
+
+            # if child.STATE is not in explored or frontier then
+            #   if problem.GOAL-TEST(child.STATE) then return SOLUTION(child) 
+            #   frontier <-- INSERT(child,frontier)
+            child_state = child.state
+
+            # Check if node is in frontier
+            child_in_frontier, parent_cost, frontier_index  = isNodeInFrontier(child, frontier, 1)
+
+            # Check that state is not in explored or frontier
+            if ( child_state not in explored.values() and child_in_frontier is not True ):
+                # Add child to frontier
+                frontier.put(child)
+            
+                # update space_frontier
+                frontier_len = len(frontier.queue)
+                if ( frontier_len > space_frontier ):
+                    space_frontier = frontier_len
+
+            # else if child.STATE is in frontier with higher PATH-COST then
+            # replace that frontier node with child
+            elif ( child_in_frontier and parent_cost > child.path_cost):
+                # Replace node in frontier with higher path cost with child
+                tmp = frontier.queue
+                tmp.pop(frontier_index)
+                frontier.put(child)
+
+
+
 
 # Given a state, this function will return all possible actions for the 2 jug puzzle
 def twoJugsGetActions(state_str, jugs_str):
@@ -527,7 +669,7 @@ def jugsGoalTest(state, goal_state, numJugs):
 def printSolution(solution_node, time, space_frontier, space_explored):
     
     # Check if solution node = -1
-    if ( solution_node == -1 ):
+    if ( solution_node.path_cost == -1 ):
         print("No solution.")
         return
     
@@ -628,25 +770,84 @@ def readConfigFile(config_filename):
 # Inputs:
 #   node = node to search for
 #   frontier = frontier list to be searched
+#   list_type = how frontier is implemented. 0 = stack, 1 = PriorityQueue
 # Outputs:
-#   isInFrontier = boolean value set to whether or not the input node's
+#   is_in_frontier = boolean value set to whether or not the input node's
 #                  state is already in the frontier list.
-def isNodeInFrontier(node, frontier):
+#   parent_cost = if a node state is found in the frontier, parent_cost represents 
+#                 the path cost of that node in the frontier list
+#   frontier_index = the index of where the duplicate node is in the frontier list
+def isNodeInFrontier(node, frontier, list_type):
     
     node_state = node.state
+
+    # If frontier is a stack so just search it like a normal list.
+    # If frontier is a PriorityQueue, convert first to a queue --> f = frontier.queue().
+
+    if ( list_type == 1 ):   
+        # listType = PriorityQueue
+        f = frontier.queue
+    else: 
+        # listType = stack 
+        f = frontier
+    
+    is_in_frontier = False
+    parent_cost = 0
+    frontier_index = -1
+
+    for i in range(0, len(f)):
+        frontier_node = f[i]
+        
+        if ( frontier_node.state == node_state ):
+            is_in_frontier = True
+            parent_cost = frontier_node.path_cost
+            frontier_index = i
+            break
+
+    return is_in_frontier, parent_cost, frontier_index
+
+# Checks whether the state of the input node appears anywhere else
+# from node to root
+def isNodeInPathToRoot(node):
+
+    is_node_in_path = False
+    node_state = node.state
     parent = node.parent
-    isInFrontier = False
 
     while ( parent is not None ):
-        if ( parent.state == node_state ):
-            isInFrontier = True
+        if ( parent.state == node.state ):
+            is_node_in_path = True
             break
         parent = parent.parent
 
-    return isInFrontier
-
+    return is_node_in_path
 
 def main(argv):
+
+
+    #q = PriorityQueue()
+    #q.put(5)
+    #q.put(10)
+    #q.put(1)
+    #q.put(8)
+    #q.put(18)
+    #q.put(3)
+    #rawr = q.queue
+    #print(rawr)
+    #print(rawr[1])
+    #rawr.pop(1)
+    #print(rawr)
+    #print('\n')
+    #print(q.get())
+    #print(q.get())
+    #print(q.get())
+    #print(q.get())
+    #print(q.get())
+
+
+    #return
+
+
 
     # Read in user input
     config_filename = argv[1]
@@ -663,6 +864,8 @@ def main(argv):
         bfs(config_filename)
     elif ( search_algorithm == "dfs" ):
         dfs(config_filename)
+    elif ( search_algorithm == "unicost" ):
+        unicost(config_filename)
 
 
     #################################################################
