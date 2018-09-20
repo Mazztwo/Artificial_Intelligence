@@ -281,8 +281,8 @@ def unicost(config_filename):
     #X           child <-- CHILD-NODE(problem,node,action)
     #X           if child.STATE is not in explored or frontier then
     #X               frontier <-- INSERT(child,frontier)
-    #           else if child.STATE is in frontier with higher PATH-COST then
-    #               replace that frontier node with child
+    #X           else if child.STATE is in frontier with higher PATH-COST then
+    #X              replace that frontier node with child
     keep_going = True
     while ( keep_going ):
         if ( len(frontier.queue) == 0 ): 
@@ -334,6 +334,11 @@ def unicost(config_filename):
                 tmp = frontier.queue
                 tmp.pop(frontier_index)
                 frontier.put(child)
+
+                # update space_frontier
+                frontier_len = len(frontier.queue)
+                if ( frontier_len > space_frontier ):
+                    space_frontier = frontier_len
 
 
 
@@ -570,7 +575,7 @@ def twoJugsGetChildNode(curr_node, jugs_str, action):
     state_str = tupleToString(new_state, 2)
 
     # Create child node
-    child_node = Node(state_str, curr_node, action, 0)
+    child_node = Node(state_str, curr_node, action, curr_node.path_cost+1)
 
     return child_node
 
@@ -625,7 +630,7 @@ def threeJugsGetChildNode(curr_node, jugs_str, action):
     state_str = tupleToString(new_state, 3)
 
     # Create child node
-    child_node = Node(state_str, curr_node, action, 0)
+    child_node = Node(state_str, curr_node, action, curr_node.path_cost+1)
 
     return child_node
 
