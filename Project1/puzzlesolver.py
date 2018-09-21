@@ -356,8 +356,8 @@ def twoJugsGetActions(state_str, jugs_str):
 
 
     # Turn jugs string and state into numerical tuples
-    jugs = stringToTuple(jugs_str, 2)
-    state = stringToTuple(state_str, 2)
+    jugs = stringToTuple(jugs_str, 2, 0)
+    state = stringToTuple(state_str, 2, 0)
 
     # Create empty actions array
     actions = []
@@ -425,8 +425,8 @@ def threeJugsGetActions(state_str, jugs_str):
     #   3) fill jug3   6) empty jug3  9) pour jug2 into jug1    12) pour jug3 into jug2
 
     # Turn jugs string and state into numerical tuples
-    jugs = stringToTuple(jugs_str, 3)
-    state = stringToTuple(state_str, 3)
+    jugs = stringToTuple(jugs_str, 3, 0)
+    state = stringToTuple(state_str, 3), 0
 
     # Create empty actions array
     actions = []
@@ -532,14 +532,28 @@ def threeJugsGetActions(state_str, jugs_str):
 
     return actions
 
+# Given a node, check all paths in configuration and return all possible paths to and from city.
+def citiesGetActions(configuration, curr_node):
+    
+    city = curr_node.state
+    actions = []
+
+    # Check each tuple (city1-->city2 = cost). If curr_node.state appears, 
+    # add the tuple to actions.
+    for path in configuration[4:]:
+        if ( city in path ):
+            actions.append(path)
+            
+    return actions
+
 def twoJugsGetChildNode(curr_node, jugs_str, action):
     
     # Get node state
     state_str = curr_node.state
 
     # Turn jugs string and state into numerical tuples
-    jugs = stringToTuple(jugs_str, 2)
-    state = stringToTuple(state_str, 2)
+    jugs = stringToTuple(jugs_str, 2, 0)
+    state = stringToTuple(state_str, 2, 0)
 
     jug1 = state[0]
     jug2 = state[1] 
@@ -583,8 +597,8 @@ def threeJugsGetChildNode(curr_node, jugs_str, action):
     state_str = curr_node.state
 
     # Turn jugs string and state into numerical tuples
-    jugs = stringToTuple(jugs_str, 3)
-    state = stringToTuple(state_str, 3)
+    jugs = stringToTuple(jugs_str, 3, 0)
+    state = stringToTuple(state_str, 3, 0)
 
     jug1 = state[0]
     jug2 = state[1] 
@@ -626,6 +640,10 @@ def threeJugsGetChildNode(curr_node, jugs_str, action):
 
     return child_node
 
+def citiesGetChildNode(curr_node, action):
+    pass
+
+
 def tupleToString(tup, num_args):
     if ( num_args == 2):
         tuple_str = "(" + str(tup[0]) + ", " + str(tup[1]) + ")"
@@ -634,20 +652,25 @@ def tupleToString(tup, num_args):
 
     return tuple_str
 
-def stringToTuple(tuple_str, num_args):
+def stringToTuple(tuple_str, num_args, tup_type):
+
+    tmp = tuple_str.replace('(', '').replace(')','').split(",")
+
     if ( num_args == 2):
-        tmp = tuple_str.replace('(', '').replace(')','').split(",")
         tup = ( int(tmp[0]), int(tmp[1]) )
     else: # num_args == 3
-        tmp = tuple_str.replace('(', '').replace(')','').split(",")
-        tup = ( int(tmp[0]), int(tmp[1]), int(tmp[2]) )
+        if( tup_type == 0 ):
+            tup = ( int(tmp[0]), int(tmp[1]), int(tmp[2]) )
+        else: # tup_type == 1
+            tup = ( tmp[0], tmp[1], int(tmp[2]) )
+
 
     return tup
 
 def jugsGoalTest(state, goal_state, numJugs):
 
-    state_numerical = stringToTuple(state, numJugs)
-    goal_numerical = stringToTuple(goal_state, numJugs)
+    state_numerical = stringToTuple(state, numJugs, 0)
+    goal_numerical = stringToTuple(goal_state, numJugs, 0)
 
     if ( state_numerical == goal_numerical ):
         return True
@@ -711,6 +734,8 @@ def getActions(puzzle, configuration, curr_node):
             actions = twoJugsGetActions(curr_node.state, jugs)
         else:
             actions = threeJugsGetActions(curr_node.state, jugs)
+    elif ( puzzle == "cities" ):
+        actions = citiesGetActions(configuration, curr_node)
 
 
     return actions
@@ -725,6 +750,8 @@ def getChildNode(puzzle, configuration, curr_node, action):
             child = twoJugsGetChildNode(curr_node, jugs, action)
         else: # num_jugs == 3
             child = threeJugsGetChildNode(curr_node, jugs, action )
+    elif ( puzzle == "cities" ):
+        child = citiesGetChildNode(curr_node, action)
 
     return child
 
@@ -747,6 +774,8 @@ def getNumJugs(configuration):
     num_jugs = len(tmp)
 
     return num_jugs
+
+
 
 # This method reads in the .config file and returns information.
 # Inputs:
