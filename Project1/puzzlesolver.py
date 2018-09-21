@@ -426,7 +426,7 @@ def threeJugsGetActions(state_str, jugs_str):
 
     # Turn jugs string and state into numerical tuples
     jugs = stringToTuple(jugs_str, 3, 0)
-    state = stringToTuple(state_str, 3), 0
+    state = stringToTuple(state_str, 3, 0)
 
     # Create empty actions array
     actions = []
@@ -667,7 +667,7 @@ def tupleToString(tup, num_args):
 
 def stringToTuple(tuple_str, num_args, tup_type):
 
-    tmp = tuple_str.replace('(', '').replace(')','').split(",") # .replace('\"', '')
+    tmp = tuple_str.replace('(', '').replace(')','').replace(' ', '').split(",")
 
     if ( num_args == 2):
         tup = ( int(tmp[0]), int(tmp[1]) )
