@@ -39,11 +39,6 @@ class Node:
     def __ge__(self, other):
         return self.path_cost >= other.path_cost
 
-
-
-
-
-     
 def bfs(config_filename):
 
     # Read in config file and extract appropirate info
@@ -339,9 +334,6 @@ def unicost(config_filename):
                 frontier_len = len(frontier.queue)
                 if ( frontier_len > space_frontier ):
                     space_frontier = frontier_len
-
-
-
 
 # Given a state, this function will return all possible actions for the 2 jug puzzle
 def twoJugsGetActions(state_str, jugs_str):
@@ -662,6 +654,12 @@ def jugsGoalTest(state, goal_state, numJugs):
     else:
         return False
 
+def citiesGoalTest(state, goal_state):
+    if ( state == goal_state ):
+        return True
+    else:
+        return False
+
 # This method will print the solution to the console.
 # Inputs:
 #   solution_node = node that contains the goal state. If -1, no solution found.
@@ -736,6 +734,8 @@ def goalTest(puzzle, configuration, curr_state, goal_state):
         # Check if problem is 2 jugs or 3 jugs
         num_jugs = getNumJugs(configuration)
         isGoalState = jugsGoalTest(curr_state, goal_state, num_jugs)
+    elif ( puzzle == "cities" ):
+        isGoalState = citiesGoalTest(curr_state, goal_state)
         
 
     return isGoalState
