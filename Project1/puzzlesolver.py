@@ -641,8 +641,21 @@ def threeJugsGetChildNode(curr_node, jugs_str, action):
     return child_node
 
 def citiesGetChildNode(curr_node, action):
-    pass
 
+    # Turn string tuple to actual tuple
+    action_tuple = stringToTuple(action, 3, 1)
+    
+    # If our current city is in tuple position 0, add tuple position 1 as the child node's state.
+    if ( action_tuple[0] == curr_node.state ):
+        city = action_tuple[1]
+    else:
+        # If our current city is in tuple position 1, add tuple position 0 as the child node's state.
+        city = action_tuple[0]
+
+    # The new path cost = curr_node's path cost + the cost of the path from city to city
+    child = Node(city, curr_node, action, curr_node.path_cost + action_tuple[2])
+
+    return child
 
 def tupleToString(tup, num_args):
     if ( num_args == 2):
@@ -654,7 +667,7 @@ def tupleToString(tup, num_args):
 
 def stringToTuple(tuple_str, num_args, tup_type):
 
-    tmp = tuple_str.replace('(', '').replace(')','').split(",")
+    tmp = tuple_str.replace('(', '').replace(')','').split(",") # .replace('\"', '')
 
     if ( num_args == 2):
         tup = ( int(tmp[0]), int(tmp[1]) )
