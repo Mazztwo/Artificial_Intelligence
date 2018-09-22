@@ -12,7 +12,7 @@
             "pythonPath": "/usr/bin/python",
             "program": "${file}",
             "cwd": "${workspaceFolder}",
-            "args": ["cities.config", "unicost", "rawr"]
+            "args": ["cities.config", "greedy", "euclidean"]
         },
        
         {

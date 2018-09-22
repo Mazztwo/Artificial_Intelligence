@@ -13,7 +13,11 @@
 import sys
 from collections import deque
 from Queue import PriorityQueue
+from ast import literal_eval as make_tuple
+import numpy as np
+from scipy.spatial import distance
 
+# Node class used for BFS, DFS, and Unicost.
 class Node:
     def __init__(self, state, parent, action, path_cost):
         self.state = state
@@ -112,7 +116,7 @@ def bfs(config_filename):
 
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
-            child = getChildNode(puzzle, configuration, curr_node, action)
+            child = getChildNode(puzzle, configuration, curr_node, action, 0)
             time += 1
 
             # if child.STATE is not in explored or frontier then
@@ -194,7 +198,7 @@ def dfs(config_filename):
 
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
-            child = getChildNode(puzzle, configuration, curr_node, action)
+            child = getChildNode(puzzle, configuration, curr_node, action, 0)
             time += 1
 
             # Check that state is not in current path back to root
@@ -301,7 +305,132 @@ def unicost(config_filename):
 
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
-            child = getChildNode(puzzle, configuration, curr_node, action)
+            child = getChildNode(puzzle, configuration, curr_node, action, 0)
+            time += 1
+
+            # if child.STATE is not in explored or frontier then
+            #   if problem.GOAL-TEST(child.STATE) then return SOLUTION(child) 
+            #   frontier <-- INSERT(child,frontier)
+            child_state = child.state
+
+            # Check if node is in frontier
+            child_in_frontier, parent_cost, frontier_index  = isNodeInFrontier(child, frontier, 1)
+
+            # Check that state is not in explored or frontier
+            if ( child_state not in explored.values() and child_in_frontier is not True ):
+                # Add child to frontier
+                frontier.put(child)
+            
+                # update space_frontier
+                frontier_len = len(frontier.queue)
+                if ( frontier_len > space_frontier ):
+                    space_frontier = frontier_len
+
+            # else if child.STATE is in frontier with higher PATH-COST then
+            # replace that frontier node with child
+            elif ( child_in_frontier and parent_cost > child.path_cost):
+                # Replace node in frontier with higher path cost with child
+                tmp = frontier.queue
+                tmp.pop(frontier_index)
+                frontier.put(child)
+
+                # update space_frontier
+                frontier_len = len(frontier.queue)
+                if ( frontier_len > space_frontier ):
+                    space_frontier = frontier_len
+
+def greedy(config_filename, heuristic):
+    
+    # Same exact implementation of unicost, except instead of using
+    # g(n) --> cost function to order the PriorityQueue,
+    # we use h(n) --> heuristic function to order the PriorityQueue.
+
+        
+    #   q = PriorityQueue()
+    #   q.put(5)
+    #   q.put(10)
+    #   q.put(1)
+    #   q.put(5)
+    #   print(q.queue) #[1,5,5,10]
+    #   q.get()
+    #   print(q.queue) #[5,5,10]
+    #   if(10 in q.queue):
+    #       print("raer") raer
+
+ 
+    # Read in config file and extract appropirate info
+    configuration, puzzle, initial_state, goal_state = readConfigFile(config_filename)
+
+    # Time --> Total number of nodes created
+    time = 0
+
+    # root <-- a node with STATE = problem.INITIAL-STATE, PATH-COST = 0
+    root = Node(initial_state,None,None,0)
+    time += 1
+
+    # if problem.GOAL-TEST(node.STATE) then return SOLUTION(node)
+    isGoalState = goalTest(puzzle, configuration, root.state, goal_state)
+    if ( isGoalState ):
+        printSolution(root, time, 0, 0)
+        return
+ 
+    # biggest size that frontier list grows to
+    space_frontier = 0
+
+    # Frontier needs to be a priority queue.
+    # Nodes added based on path cost. Less expensive nodes are left in the array, more expensive are right.
+    # [less expensive <----------> more expensive]
+    # EX: [1,5,10,20]
+    # Nodes get removed from the front(left) of the queue.
+    # frontier <-- a priority queue ordered by PATH-COST, with root as the only element for now 
+    frontier = PriorityQueue()
+    frontier.put(root)
+    space_frontier += 1
+
+    # explored stores states
+    explored = {}
+
+    # In the explored dictionary, we store [key:value] pairs. I don't really care what
+    # they key is, I just need a value. So, i'll just keep a counter variable and use that
+    # as the key whenever I add a new state to my explored list. Of course, I'll check and make
+    # sure that the state I want to add is not already in explored. 
+    counter = 0
+
+    #X   loop do
+    #X       if EMPTY?(frontier) then return failure
+    #X       node <-- POP(frontier) /*chooses the lowest-cost node in frontier */ 
+    #X       if problem.GOAL-TEST(node.STATE) then return SOLUTION(node) 
+    #X       add node.STATE to explored
+    #X       for each action in problem.ACTIONS(node.STATE) do
+    #X           child <-- CHILD-NODE(problem,node,action)
+    #X           if child.STATE is not in explored or frontier then
+    #X               frontier <-- INSERT(child,frontier)
+    #X           else if child.STATE is in frontier with higher PATH-COST then
+    #X              replace that frontier node with child
+    keep_going = True
+    while ( keep_going ):
+        if ( len(frontier.queue) == 0 ): 
+            printSolution(Node(None,None,None,-1),0,0,0)
+            return
+
+        # Get the lowest cost node from frontier
+        curr_node = frontier.get()
+
+        # Goal Test
+        isGoalState = goalTest(puzzle, configuration, curr_node.state , goal_state)
+        if ( isGoalState ): 
+            printSolution(curr_node, time, space_frontier,len(explored))
+            return
+
+        # Add current node's state to explored
+        explored[counter] = curr_node.state
+        counter += 1
+
+        actions = getActions(puzzle, configuration, curr_node)
+
+        for action in actions:
+            # child <-- CHILD-NODE(problem,curr_node,action)
+            child = getChildNode(puzzle, configuration, curr_node, action, heuristic)
             time += 1
 
             # if child.STATE is not in explored or frontier then
@@ -546,7 +675,7 @@ def citiesGetActions(configuration, curr_node):
             
     return actions
 
-def twoJugsGetChildNode(curr_node, jugs_str, action):
+def twoJugsGetChildNode(curr_node, jugs_str, action, heuristic):
     
     # Get node state
     state_str = curr_node.state
@@ -580,12 +709,13 @@ def twoJugsGetChildNode(curr_node, jugs_str, action):
     # Convert numerical tuple to string
     state_str = tupleToString(new_state, 2)
 
-    # Create child node
-    child_node = Node(state_str, curr_node, action, curr_node.path_cost+1)
+    # Create child node based on heuristic given. If = 0, then just calculate as normal.
+    if ( heuristic == 0 ):
+        child_node = Node(state_str, curr_node, action, curr_node.path_cost+1)
 
     return child_node
 
-def threeJugsGetChildNode(curr_node, jugs_str, action):
+def threeJugsGetChildNode(curr_node, jugs_str, action, heuristic):
         
     # jugs = (jug1, jug2, jug3) 
     # Possible actions:
@@ -635,16 +765,17 @@ def threeJugsGetChildNode(curr_node, jugs_str, action):
     # Convert numerical tuple to string
     state_str = tupleToString(new_state, 3)
 
-    # Create child node
-    child_node = Node(state_str, curr_node, action, curr_node.path_cost+1)
+     # Create child node based on heuristic given. If = 0, then just calculate as normal.
+    if ( heuristic == 0 ):
+        child_node = Node(state_str, curr_node, action, curr_node.path_cost+1)
 
     return child_node
 
-def citiesGetChildNode(curr_node, action):
+def citiesGetChildNode(curr_node, action, heuristic, grid):
 
     # Turn string tuple to actual tuple
     action_tuple = stringToTuple(action, 3, 1)
-    
+
     # If our current city is in tuple position 0, add tuple position 1 as the child node's state.
     if ( action_tuple[0] == curr_node.state ):
         city = action_tuple[1]
@@ -653,7 +784,27 @@ def citiesGetChildNode(curr_node, action):
         city = action_tuple[0]
 
     # The new path cost = curr_node's path cost + the cost of the path from city to city
-    child = Node(city, curr_node, action, curr_node.path_cost + action_tuple[2])
+    # Create child node based on heuristic given. If = 0, then just calculate as normal.
+    if ( heuristic == 0 ):
+        calculated_cost = curr_node.path_cost + action_tuple[2]
+    elif ( heuristic == "euclidean" ):
+        # Get cities
+        cities = make_tuple(action)
+        city1 = cities[0]
+        city2 = cities[1]
+
+        # Find cities in grid
+        city1_position = [city for city in grid if city[0] == city1][0]
+        city2_position = [city for city in grid if city[0] == city2][0]
+        
+        # Create two vectors from the points on the grid
+        v1 = np.array([city1_position[1],city1_position[2]])
+        v2 = np.array([city2_position[1],city2_position[2]])
+        
+        # Calculate euclidean distance
+        calculated_cost = distance.euclidean(v1,v2)
+
+    child = Node(city, curr_node, action, calculated_cost)
 
     return child
 
@@ -753,18 +904,20 @@ def getActions(puzzle, configuration, curr_node):
 
     return actions
 
-def getChildNode(puzzle, configuration, curr_node, action):
+def getChildNode(puzzle, configuration, curr_node, action, heuristic):
 
     if ( puzzle == "jugs" ):
         num_jugs = getNumJugs(configuration)
         jugs = configuration[1].strip()
 
         if ( num_jugs == 2 ):
-            child = twoJugsGetChildNode(curr_node, jugs, action)
+            child = twoJugsGetChildNode(curr_node, jugs, action, heuristic)
         else: # num_jugs == 3
-            child = threeJugsGetChildNode(curr_node, jugs, action )
+            child = threeJugsGetChildNode(curr_node, jugs, action, heuristic )
     elif ( puzzle == "cities" ):
-        child = citiesGetChildNode(curr_node, action)
+        # Extract grid of cities
+        grid = make_tuple(configuration[1])
+        child = citiesGetChildNode(curr_node, action, heuristic, grid)
 
     return child
 
@@ -787,8 +940,6 @@ def getNumJugs(configuration):
     num_jugs = len(tmp)
 
     return num_jugs
-
-
 
 # This method reads in the .config file and returns information.
 # Inputs:
@@ -904,7 +1055,7 @@ def main(argv):
     if ( len(argv) > 3 ):
         heuristic_function = argv[3]
 
-    
+
     #################################################################
     
     if ( search_algorithm == "bfs" ):
@@ -913,6 +1064,8 @@ def main(argv):
         dfs(config_filename)
     elif ( search_algorithm == "unicost" ):
         unicost(config_filename)
+    elif ( search_algorithm == "greedy" ):
+        greedy(config_filename, heuristic_function)
 
 
     #################################################################
