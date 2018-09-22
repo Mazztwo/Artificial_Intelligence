@@ -788,14 +788,15 @@ def citiesGetChildNode(curr_node, action, heuristic, grid):
     if ( heuristic == 0 ):
         calculated_cost = curr_node.path_cost + action_tuple[2]
     elif ( heuristic == "euclidean" ):
+
         # Get cities
         cities = make_tuple(action)
         city1 = cities[0]
         city2 = cities[1]
 
         # Find cities in grid
-        city1_position = [city for city in grid if city[0] == city1][0]
-        city2_position = [city for city in grid if city[0] == city2][0]
+        city1_position = [cit for cit in grid if cit[0] == city1][0]
+        city2_position = [cit for cit in grid if cit[0] == city2][0]
         
         # Create two vectors from the points on the grid
         v1 = np.array([city1_position[1],city1_position[2]])
