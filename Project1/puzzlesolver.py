@@ -675,7 +675,7 @@ def citiesGetActions(configuration, curr_node):
             
     return actions
 
-def twoJugsGetChildNode(curr_node, jugs_str, action, heuristic):
+def twoJugsGetChildNode(curr_node, jugs_str, action, goal, heuristic):
     
     # Get node state
     state_str = curr_node.state
@@ -711,11 +711,19 @@ def twoJugsGetChildNode(curr_node, jugs_str, action, heuristic):
 
     # Create child node based on heuristic given. If = 0, then just calculate as normal.
     if ( heuristic == 0 ):
-        child_node = Node(state_str, curr_node, action, curr_node.path_cost+1)
+        calculated_cost = curr_node.path_cost+1
+    elif ( heuristic == "proximity" ):
+        # The heuristic function used is proximity of the current state to the goal state.
+        # h(x,y) = |x - goal_x| + |y - goal_y|
+        # This function yields 0 for goal state.
+        gl = make_tuple(goal)
+        calculated_cost = abs(jug1-gl[0]) + abs(jug2-gl[1])
+    
+    child_node = Node(state_str, curr_node, action, calculated_cost)
 
     return child_node
 
-def threeJugsGetChildNode(curr_node, jugs_str, action, heuristic):
+def threeJugsGetChildNode(curr_node, jugs_str, action, goal, heuristic):
         
     # jugs = (jug1, jug2, jug3) 
     # Possible actions:
@@ -767,7 +775,12 @@ def threeJugsGetChildNode(curr_node, jugs_str, action, heuristic):
 
      # Create child node based on heuristic given. If = 0, then just calculate as normal.
     if ( heuristic == 0 ):
-        child_node = Node(state_str, curr_node, action, curr_node.path_cost+1)
+        calculated_cost = curr_node.path_cost+1
+    elif ( heuristic == "proximity" ):
+        gl = make_tuple(goal)
+        calculated_cost = abs(jug1-gl[0]) + abs(jug2-gl[1]) + abs(jug3 - gl[2])
+
+    child_node = Node(state_str, curr_node, action, calculated_cost)
 
     return child_node
 
@@ -802,7 +815,7 @@ def citiesGetChildNode(curr_node, action, heuristic, grid):
         v1 = np.array([city1_position[1],city1_position[2]])
         v2 = np.array([city2_position[1],city2_position[2]])
         
-        # Calculate euclidean distance
+        # Calculate euclidean distance as heuristic!
         calculated_cost = distance.euclidean(v1,v2)
 
     child = Node(city, curr_node, action, calculated_cost)
@@ -910,11 +923,12 @@ def getChildNode(puzzle, configuration, curr_node, action, heuristic):
     if ( puzzle == "jugs" ):
         num_jugs = getNumJugs(configuration)
         jugs = configuration[1].strip()
+        goal = configuration[3].strip()
 
         if ( num_jugs == 2 ):
-            child = twoJugsGetChildNode(curr_node, jugs, action, heuristic)
+            child = twoJugsGetChildNode(curr_node, jugs, action, goal, heuristic)
         else: # num_jugs == 3
-            child = threeJugsGetChildNode(curr_node, jugs, action, heuristic )
+            child = threeJugsGetChildNode(curr_node, jugs, action, goal, heuristic )
     elif ( puzzle == "cities" ):
         # Extract grid of cities
         grid = make_tuple(configuration[1])
