@@ -9,7 +9,6 @@
 #
 #################################################################
 
-
 import sys
 from collections import deque
 from Queue import PriorityQueue
@@ -116,7 +115,7 @@ def bfs(config_filename):
 
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
-            child = getChildNode(puzzle, configuration, curr_node, action, 0)
+            child = getChildNode(puzzle, configuration, curr_node, action, 0, 0)
             time += 1
 
             # if child.STATE is not in explored or frontier then
@@ -198,7 +197,7 @@ def dfs(config_filename):
 
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
-            child = getChildNode(puzzle, configuration, curr_node, action, 0)
+            child = getChildNode(puzzle, configuration, curr_node, action, 0, 0)
             time += 1
 
             # Check that state is not in current path back to root
@@ -305,7 +304,7 @@ def unicost(config_filename):
 
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
-            child = getChildNode(puzzle, configuration, curr_node, action, 0)
+            child = getChildNode(puzzle, configuration, curr_node, action, 0, 0)
             time += 1
 
             # if child.STATE is not in explored or frontier then
@@ -382,7 +381,7 @@ def greedy(config_filename, heuristic):
     # [less expensive <----------> more expensive]
     # EX: [1,5,10,20]
     # Nodes get removed from the front(left) of the queue.
-    # frontier <-- a priority queue ordered by PATH-COST, with root as the only element for now 
+    # frontier <-- a priority queue ordered by Heuristic-COST, with root as the only element for now 
     frontier = PriorityQueue()
     frontier.put(root)
     space_frontier += 1
@@ -398,14 +397,14 @@ def greedy(config_filename, heuristic):
 
     #X   loop do
     #X       if EMPTY?(frontier) then return failure
-    #X       node <-- POP(frontier) /*chooses the lowest-cost node in frontier */ 
+    #X       node <-- POP(frontier) /*chooses the lowest-heuristic-cost node in frontier */ 
     #X       if problem.GOAL-TEST(node.STATE) then return SOLUTION(node) 
     #X       add node.STATE to explored
     #X       for each action in problem.ACTIONS(node.STATE) do
     #X           child <-- CHILD-NODE(problem,node,action)
     #X           if child.STATE is not in explored or frontier then
     #X               frontier <-- INSERT(child,frontier)
-    #X           else if child.STATE is in frontier with higher PATH-COST then
+    #X           else if child.STATE is in frontier with higher heuristic-COST then
     #X              replace that frontier node with child
     keep_going = True
     while ( keep_going ):
@@ -430,7 +429,7 @@ def greedy(config_filename, heuristic):
 
         for action in actions:
             # child <-- CHILD-NODE(problem,curr_node,action)
-            child = getChildNode(puzzle, configuration, curr_node, action, heuristic)
+            child = getChildNode(puzzle, configuration, curr_node, action, heuristic, 0)
             time += 1
 
             # if child.STATE is not in explored or frontier then
@@ -451,7 +450,7 @@ def greedy(config_filename, heuristic):
                 if ( frontier_len > space_frontier ):
                     space_frontier = frontier_len
 
-            # else if child.STATE is in frontier with higher PATH-COST then
+            # else if child.STATE is in frontier with higher Heuristic-COST then
             # replace that frontier node with child
             elif ( child_in_frontier and parent_cost > child.path_cost):
                 # Replace node in frontier with higher path cost with child
@@ -463,6 +462,131 @@ def greedy(config_filename, heuristic):
                 frontier_len = len(frontier.queue)
                 if ( frontier_len > space_frontier ):
                     space_frontier = frontier_len
+
+def astar(config_filename, heuristic):
+
+    # Same exact implementation of unicost, except instead of using
+    # g(n) --> cost function to order the PriorityQueue,
+    # we use f(n) = g(n) + h(n) --> function to order the PriorityQueue.
+
+        
+    #   q = PriorityQueue()
+    #   q.put(5)
+    #   q.put(10)
+    #   q.put(1)
+    #   q.put(5)
+    #   print(q.queue) #[1,5,5,10]
+    #   q.get()
+    #   print(q.queue) #[5,5,10]
+    #   if(10 in q.queue):
+    #       print("raer") raer
+
+ 
+    # Read in config file and extract appropirate info
+    configuration, puzzle, initial_state, goal_state = readConfigFile(config_filename)
+
+    # Time --> Total number of nodes created
+    time = 0
+
+    # root <-- a node with STATE = problem.INITIAL-STATE, PATH-COST = 0
+    root = Node(initial_state,None,None,0)
+    time += 1
+
+    # if problem.GOAL-TEST(node.STATE) then return SOLUTION(node)
+    isGoalState = goalTest(puzzle, configuration, root.state, goal_state)
+    if ( isGoalState ):
+        printSolution(root, time, 0, 0)
+        return
+ 
+    # biggest size that frontier list grows to
+    space_frontier = 0
+
+    # Frontier needs to be a priority queue.
+    # Nodes added based on path cost. Less expensive nodes are left in the array, more expensive are right.
+    # [less expensive <----------> more expensive]
+    # EX: [1,5,10,20]
+    # Nodes get removed from the front(left) of the queue.
+    # frontier <-- a priority queue ordered by COST+Heuristic, with root as the only element for now 
+    frontier = PriorityQueue()
+    frontier.put(root)
+    space_frontier += 1
+
+    # explored stores states
+    explored = {}
+
+    # In the explored dictionary, we store [key:value] pairs. I don't really care what
+    # they key is, I just need a value. So, i'll just keep a counter variable and use that
+    # as the key whenever I add a new state to my explored list. Of course, I'll check and make
+    # sure that the state I want to add is not already in explored. 
+    counter = 0
+
+    #X   loop do
+    #X       if EMPTY?(frontier) then return failure
+    #X       node <-- POP(frontier) /*chooses the lowest-COST+Heuristic node in frontier */ 
+    #X       if problem.GOAL-TEST(node.STATE) then return SOLUTION(node) 
+    #X       add node.STATE to explored
+    #X       for each action in problem.ACTIONS(node.STATE) do
+    #X           child <-- CHILD-NODE(problem,node,action)
+    #X           if child.STATE is not in explored or frontier then
+    #X               frontier <-- INSERT(child,frontier)
+    #X           else if child.STATE is in frontier with higher COST+Heuristic then
+    #X              replace that frontier node with child
+    keep_going = True
+    while ( keep_going ):
+        if ( len(frontier.queue) == 0 ): 
+            printSolution(Node(None,None,None,-1),0,0,0)
+            return
+
+        # Get the lowest cost node from frontier
+        curr_node = frontier.get()
+
+        # Goal Test
+        isGoalState = goalTest(puzzle, configuration, curr_node.state , goal_state)
+        if ( isGoalState ): 
+            printSolution(curr_node, time, space_frontier,len(explored))
+            return
+
+        # Add current node's state to explored
+        explored[counter] = curr_node.state
+        counter += 1
+
+        actions = getActions(puzzle, configuration, curr_node)
+
+        for action in actions:
+            # child <-- CHILD-NODE(problem,curr_node,action)
+            child = getChildNode(puzzle, configuration, curr_node, action, heuristic, 1)
+            time += 1
+
+            # if child.STATE is not in explored or frontier then
+            #   if problem.GOAL-TEST(child.STATE) then return SOLUTION(child) 
+            #   frontier <-- INSERT(child,frontier)
+            child_state = child.state
+
+            # Check if node is in frontier
+            child_in_frontier, parent_cost, frontier_index  = isNodeInFrontier(child, frontier, 1)
+
+            # Check that state is not in explored or frontier
+            if ( child_state not in explored.values() and child_in_frontier is not True ):
+                # Add child to frontier
+                frontier.put(child)
+            
+                # update space_frontier
+                frontier_len = len(frontier.queue)
+                if ( frontier_len > space_frontier ):
+                    space_frontier = frontier_len
+
+            # else if child.STATE is in frontier with higher COST+Heuristic then
+            # replace that frontier node with child
+            elif ( child_in_frontier and parent_cost > child.path_cost):
+                # Replace node in frontier with higher path cost with child
+                tmp = frontier.queue
+                tmp.pop(frontier_index)
+                frontier.put(child)
+
+                # update space_frontier
+                frontier_len = len(frontier.queue)
+                if ( frontier_len > space_frontier ):
+                    space_frontier = frontier_len    
 
 # Given a state, this function will return all possible actions for the 2 jug puzzle
 def twoJugsGetActions(state_str, jugs_str):
@@ -675,7 +799,25 @@ def citiesGetActions(configuration, curr_node):
             
     return actions
 
-def twoJugsGetChildNode(curr_node, jugs_str, action, goal, heuristic):
+def getChildNode(puzzle, configuration, curr_node, action, heuristic, algorithm):
+
+    if ( puzzle == "jugs" ):
+        num_jugs = getNumJugs(configuration)
+        jugs = configuration[1].strip()
+        goal = configuration[3].strip()
+
+        if ( num_jugs == 2 ):
+            child = twoJugsGetChildNode(curr_node, jugs, action, goal, heuristic, algorithm)
+        else: # num_jugs == 3
+            child = threeJugsGetChildNode(curr_node, jugs, action, goal, heuristic, algorithm)
+    elif ( puzzle == "cities" ):
+        # Extract grid of cities
+        grid = make_tuple(configuration[1])
+        child = citiesGetChildNode(curr_node, action, heuristic, grid, algorithm)
+
+    return child
+
+def twoJugsGetChildNode(curr_node, jugs_str, action, goal, heuristic, algorithm):
     
     # Get node state
     state_str = curr_node.state
@@ -709,21 +851,31 @@ def twoJugsGetChildNode(curr_node, jugs_str, action, goal, heuristic):
     # Convert numerical tuple to string
     state_str = tupleToString(new_state, 2)
 
-    # Create child node based on heuristic given. If = 0, then just calculate as normal.
+    # Calculate the node's cost based on if the algorithm is dfs/bfs/unicost/greedy vs astar.
+    # If algorithm = 0, then calculate the cost based on heuristic/path_cost. 
+    # If algorithm = 1, then path cost = f(n) = g(n) + h(n)
+        # Create child node based on heuristic given. If = 0, then just calculate as normal.
     if ( heuristic == 0 ):
+        # cost = g(n)
         calculated_cost = curr_node.path_cost+1
     elif ( heuristic == "proximity" ):
+        # cost = h(n)
         # The heuristic function used is proximity of the current state to the goal state.
         # h(x,y) = |x - goal_x| + |y - goal_y|
         # This function yields 0 for goal state.
         gl = make_tuple(goal)
         calculated_cost = abs(jug1-gl[0]) + abs(jug2-gl[1])
+
+        if ( algorithm == 1 ):
+            # cost = f(n) = h(n) + g(n)
+            calculated_cost += (curr_node.path_cost+1)
+
     
     child_node = Node(state_str, curr_node, action, calculated_cost)
 
     return child_node
 
-def threeJugsGetChildNode(curr_node, jugs_str, action, goal, heuristic):
+def threeJugsGetChildNode(curr_node, jugs_str, action, goal, heuristic, algorithm):
         
     # jugs = (jug1, jug2, jug3) 
     # Possible actions:
@@ -773,18 +925,31 @@ def threeJugsGetChildNode(curr_node, jugs_str, action, goal, heuristic):
     # Convert numerical tuple to string
     state_str = tupleToString(new_state, 3)
 
-     # Create child node based on heuristic given. If = 0, then just calculate as normal.
+    # Calculate the node's cost based on if the algorithm is dfs/bfs/unicost/greedy vs astar.
+    # If algorithm = 0, then calculate the cost based on heuristic/path_cost. 
+    # If algorithm = 1, then path cost = f(n) = g(n) + h(n)
+    # Create child node based on heuristic given. If = 0, then just calculate as normal.
     if ( heuristic == 0 ):
+        # cost = g(n)
         calculated_cost = curr_node.path_cost+1
     elif ( heuristic == "proximity" ):
+        # cost = h(n)
+        # The heuristic function used is proximity of the current state to the goal state.
+        # h(x,y) = |x - goal_x| + |y - goal_y|
+        # This function yields 0 for goal state.
         gl = make_tuple(goal)
         calculated_cost = abs(jug1-gl[0]) + abs(jug2-gl[1]) + abs(jug3 - gl[2])
+
+        if ( algorithm == 1 ):
+            # cost = f(n) = h(n) + g(n)
+            calculated_cost += (curr_node.path_cost+1)
+  
 
     child_node = Node(state_str, curr_node, action, calculated_cost)
 
     return child_node
 
-def citiesGetChildNode(curr_node, action, heuristic, grid):
+def citiesGetChildNode(curr_node, action, heuristic, grid, algorithm):
 
     # Turn string tuple to actual tuple
     action_tuple = stringToTuple(action, 3, 1)
@@ -796,9 +961,13 @@ def citiesGetChildNode(curr_node, action, heuristic, grid):
         # If our current city is in tuple position 1, add tuple position 0 as the child node's state.
         city = action_tuple[0]
 
+    # Calculate the node's cost based on if the algorithm is dfs/bfs/unicost/greedy vs astar.
+    # If algorithm = 0, then calculate the cost based on heuristic/path_cost. 
+    # If algorithm = 1, then path cost = f(n) = g(n) + h(n)
     # The new path cost = curr_node's path cost + the cost of the path from city to city
     # Create child node based on heuristic given. If = 0, then just calculate as normal.
     if ( heuristic == 0 ):
+        # cost = g(n)
         calculated_cost = curr_node.path_cost + action_tuple[2]
     elif ( heuristic == "euclidean" ):
 
@@ -816,7 +985,12 @@ def citiesGetChildNode(curr_node, action, heuristic, grid):
         v2 = np.array([city2_position[1],city2_position[2]])
         
         # Calculate euclidean distance as heuristic!
+        # cost = h(n)
         calculated_cost = distance.euclidean(v1,v2)
+
+        if ( algorithm == 1 ):
+            # cost = f(n) = h(n) + g(n)
+            calculated_cost += (curr_node.path_cost + action_tuple[2])
 
     child = Node(city, curr_node, action, calculated_cost)
 
@@ -844,6 +1018,18 @@ def stringToTuple(tuple_str, num_args, tup_type):
 
 
     return tup
+
+def goalTest(puzzle, configuration, curr_state, goal_state):
+
+    if ( puzzle == "jugs" ):
+        # Check if problem is 2 jugs or 3 jugs
+        num_jugs = getNumJugs(configuration)
+        isGoalState = jugsGoalTest(curr_state, goal_state, num_jugs)
+    elif ( puzzle == "cities" ):
+        isGoalState = citiesGoalTest(curr_state, goal_state)
+        
+
+    return isGoalState
 
 def jugsGoalTest(state, goal_state, numJugs):
 
@@ -917,36 +1103,6 @@ def getActions(puzzle, configuration, curr_node):
 
 
     return actions
-
-def getChildNode(puzzle, configuration, curr_node, action, heuristic):
-
-    if ( puzzle == "jugs" ):
-        num_jugs = getNumJugs(configuration)
-        jugs = configuration[1].strip()
-        goal = configuration[3].strip()
-
-        if ( num_jugs == 2 ):
-            child = twoJugsGetChildNode(curr_node, jugs, action, goal, heuristic)
-        else: # num_jugs == 3
-            child = threeJugsGetChildNode(curr_node, jugs, action, goal, heuristic )
-    elif ( puzzle == "cities" ):
-        # Extract grid of cities
-        grid = make_tuple(configuration[1])
-        child = citiesGetChildNode(curr_node, action, heuristic, grid)
-
-    return child
-
-def goalTest(puzzle, configuration, curr_state, goal_state):
-
-    if ( puzzle == "jugs" ):
-        # Check if problem is 2 jugs or 3 jugs
-        num_jugs = getNumJugs(configuration)
-        isGoalState = jugsGoalTest(curr_state, goal_state, num_jugs)
-    elif ( puzzle == "cities" ):
-        isGoalState = citiesGoalTest(curr_state, goal_state)
-        
-
-    return isGoalState
 
 # Check if problem is 2 jugs or 3 jugs
 def getNumJugs(configuration):
@@ -1037,31 +1193,6 @@ def isNodeInPathToRoot(node):
 
 def main(argv):
 
-
-    #q = PriorityQueue()
-    #q.put(5)
-    #q.put(10)
-    #q.put(1)
-    #q.put(8)
-    #q.put(18)
-    #q.put(3)
-    #rawr = q.queue
-    #print(rawr)
-    #print(rawr[1])
-    #rawr.pop(1)
-    #print(rawr)
-    #print('\n')
-    #print(q.get())
-    #print(q.get())
-    #print(q.get())
-    #print(q.get())
-    #print(q.get())
-
-
-    #return
-
-
-
     # Read in user input
     config_filename = argv[1]
     search_algorithm = argv[2]
@@ -1081,10 +1212,11 @@ def main(argv):
         unicost(config_filename)
     elif ( search_algorithm == "greedy" ):
         greedy(config_filename, heuristic_function)
+    elif ( search_algorithm == "astar" ):
+        astar(config_filename, heuristic_function)
 
 
     #################################################################
-
 
 
 if ( __name__ == "__main__" ):
