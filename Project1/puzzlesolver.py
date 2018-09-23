@@ -588,6 +588,27 @@ def astar(config_filename, heuristic):
                 if ( frontier_len > space_frontier ):
                     space_frontier = frontier_len    
 
+def getActions(puzzle, configuration, curr_node):
+ 
+     # Get actions
+    if ( puzzle == 'jugs' ):
+        # Check if problem is 2 jugs or 3 jugs
+        num_jugs = getNumJugs(configuration)
+        jugs = configuration[1].strip()
+
+        if ( num_jugs == 2 ): 
+            actions = twoJugsGetActions(curr_node.state, jugs)
+        else:
+            actions = threeJugsGetActions(curr_node.state, jugs)
+    elif ( puzzle == "cities" ):
+        actions = citiesGetActions(configuration, curr_node)
+    elif ( puzzle == "tiles" ):
+        actions = tilesGetActions(curr_node.state)
+
+
+    return actions
+
+
 # Given a state, this function will return all possible actions for the 2 jug puzzle
 def twoJugsGetActions(state_str, jugs_str):
 
@@ -785,7 +806,7 @@ def threeJugsGetActions(state_str, jugs_str):
 
     return actions
 
-# Given a node, check all paths in configuration and return all possible paths to and from city.
+# Given a node, check  all paths in configuration and return all possible paths to and from city.
 def citiesGetActions(configuration, curr_node):
     
     city = curr_node.state
@@ -798,6 +819,69 @@ def citiesGetActions(configuration, curr_node):
             actions.append(path)
             
     return actions
+
+# Based on the current state of the board and the goal state,
+# find all appropirate moves and return them.
+def tilesGetActions(curr_board):
+    
+    # Possible actions:
+    # up = 0
+    # down = 1
+    # left = 2
+    # right = 3
+    actions = []
+
+    # Make board string into array
+    board = make_tuple(curr_board)
+
+    # Calculate N
+    N = sqrt( len(board) )
+
+    # find blank spot
+    blank = 0
+    for i in range(0,N):
+        if ( board[i] == 'b' ):
+            blank = i
+            break
+
+    # Calculate moves
+    up = blank - N
+    down = blank + N
+    left = blank - 1
+    right = blank + 1
+
+    # Check if up and down are legal indicies
+    if ( up in range(0, (N*N)) ):
+        actions.append(0)
+    if ( down in range(0, (N*N)) ):
+        actions.append(1)
+    
+    # Check if left and right are legal indicies
+    # Generate array of possible indicies
+    # Initialize to all zeros
+    possible_indicies = [ [0] * N for i in range(0,N) ]
+    tmp = 0
+    for row in range(0,N):
+        for col in range(0,N):
+            possible_indicies[row][col] = tmp
+            tmp += 1
+
+    # Get legal row indicies
+    for row in range(0,N):
+        legal_values = possible_indicies[row]
+        if ( blank in legal_values ):
+            break
+
+    # Check if left and right are in legal_values
+    if ( left in legal_values ):
+        actions.append(2)
+    if ( right in legal_values ):
+        actions.append(3)
+ 
+    return actions
+
+
+
 
 def getChildNode(puzzle, configuration, curr_node, action, heuristic, algorithm):
 
@@ -1085,24 +1169,6 @@ def printSolution(solution_node, time, space_frontier, space_explored):
         space_explored = "explored list not used"
 
     print "Space - Explored: ", space_explored
-
-def getActions(puzzle, configuration, curr_node):
- 
-     # Get actions
-    if ( puzzle == 'jugs' ):
-        # Check if problem is 2 jugs or 3 jugs
-        num_jugs = getNumJugs(configuration)
-        jugs = configuration[1].strip()
-
-        if ( num_jugs == 2 ): 
-            actions = twoJugsGetActions(curr_node.state, jugs)
-        else:
-            actions = threeJugsGetActions(curr_node.state, jugs)
-    elif ( puzzle == "cities" ):
-        actions = citiesGetActions(configuration, curr_node)
-
-
-    return actions
 
 # Check if problem is 2 jugs or 3 jugs
 def getNumJugs(configuration):
