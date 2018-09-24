@@ -15,6 +15,7 @@ from Queue import PriorityQueue
 from ast import literal_eval as make_tuple
 import numpy as np
 from scipy.spatial import distance
+import math
 
 # Node class used for BFS, DFS, and Unicost.
 class Node:
@@ -608,7 +609,6 @@ def getActions(puzzle, configuration, curr_node):
 
     return actions
 
-
 # Given a state, this function will return all possible actions for the 2 jug puzzle
 def twoJugsGetActions(state_str, jugs_str):
 
@@ -835,11 +835,11 @@ def tilesGetActions(curr_board):
     board = make_tuple(curr_board)
 
     # Calculate N
-    N = sqrt( len(board) )
+    N = int(math.sqrt(len(board)))
 
     # find blank spot
     blank = 0
-    for i in range(0,N):
+    for i in range(0,N*N):
         if ( board[i] == 'b' ):
             blank = i
             break
@@ -880,9 +880,6 @@ def tilesGetActions(curr_board):
  
     return actions
 
-
-
-
 def getChildNode(puzzle, configuration, curr_node, action, heuristic, algorithm):
 
     if ( puzzle == "jugs" ):
@@ -898,6 +895,9 @@ def getChildNode(puzzle, configuration, curr_node, action, heuristic, algorithm)
         # Extract grid of cities
         grid = make_tuple(configuration[1])
         child = citiesGetChildNode(curr_node, action, heuristic, grid, algorithm)
+    elif ( puzzle == "tiles" ):
+        child = tilesGetChildNode(curr_node, action, heuristic, algorithm)
+
 
     return child
 
@@ -1080,6 +1080,60 @@ def citiesGetChildNode(curr_node, action, heuristic, grid, algorithm):
 
     return child
 
+def tilesGetChildNode(curr_node, action, heuristic, algorithm):
+
+     # Make board string into array
+    board = make_tuple(curr_node.state)
+
+    # Calculate N
+    N = int(math.sqrt(len(board)))
+
+    # find blank spot
+    blank = 0
+    for i in range(0,N*N):
+        if ( board[i] == 'b' ):
+            blank = i
+            break
+
+    # Possible actions:
+    # up = 0
+    # down = 1
+    # left = 2
+    # right = 3
+    # curr_board = '[1,2,3,4,'b',5,7,8,6]'
+
+    # New index to move blank to
+    if ( action == 0 ):
+        ind = blank - N
+    elif ( action == 1 ):
+        ind = blank + N
+    elif ( action == 2 ):
+        ind = blank - 1
+    elif ( action == 3 ):
+        ind = blank + 1
+
+    # swap values
+    value_to_swap = board[ind]
+    board[ind] = 'b'
+    board[blank] = value_to_swap
+
+    # Turn tuple back to string
+    new_state = ''.join(str(board)).replace(" ", "")
+
+    # Calculate the node's cost based on if the algorithm is dfs/bfs/unicost/greedy vs astar.
+    # If algorithm = 0, then calculate the cost based on heuristic/path_cost. 
+    # If algorithm = 1, then path cost = f(n) = g(n) + h(n)
+    # The new path cost = curr_node's path cost + the cost of the path from city to city
+    # Create child node based on heuristic given. If = 0, then just calculate as normal.
+    if ( heuristic == 0 ):
+        # cost = g(n)
+        calculated_cost = curr_node.path_cost + 1
+
+    # Create child
+    child = Node(new_state, curr_node, action, calculated_cost)
+
+    return child
+
 def tupleToString(tup, num_args):
     if ( num_args == 2):
         tuple_str = "(" + str(tup[0]) + ", " + str(tup[1]) + ")"
@@ -1111,6 +1165,8 @@ def goalTest(puzzle, configuration, curr_state, goal_state):
         isGoalState = jugsGoalTest(curr_state, goal_state, num_jugs)
     elif ( puzzle == "cities" ):
         isGoalState = citiesGoalTest(curr_state, goal_state)
+    elif ( puzzle == "tiles" ):
+        isGoalState = tilesGoalTest(curr_state, goal_state)
         
 
     return isGoalState
@@ -1126,6 +1182,12 @@ def jugsGoalTest(state, goal_state, numJugs):
         return False
 
 def citiesGoalTest(state, goal_state):
+    if ( state == goal_state ):
+        return True
+    else:
+        return False
+
+def tilesGoalTest(state, goal_state):
     if ( state == goal_state ):
         return True
     else:
