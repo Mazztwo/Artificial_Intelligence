@@ -1133,7 +1133,7 @@ def tilesGetChildNode(curr_node, action, goal, heuristic, algorithm):
         # cost = h(n)
         # The heuristic function used is the manhattan distance heuristic.  
         # For every tile on the current board, we must check where it's supposed
-        # to go. Add all the slides together    
+        # to go. Add all the slides together at end to get h(n)
         goal = make_tuple(goal)  
         calculated_cost = 0
 
@@ -1147,6 +1147,7 @@ def tilesGetChildNode(curr_node, action, goal, heuristic, algorithm):
                 curr_matrix[row][col] = board[tmp]
                 tmp += 1
 
+        # For every tile, find the manhattan distance
         for tile in board:
             # Find the row and col where tile is currently on the board
             curr_row = 0
@@ -1172,16 +1173,30 @@ def tilesGetChildNode(curr_node, action, goal, heuristic, algorithm):
             # Add current manhattan distance for a tile to running sum
             calculated_cost += curr_manhattan
 
-
         if ( algorithm == 1 ):
             # For astar
             # cost = f(n) = h(n) + g(n)
             calculated_cost += (curr_node.path_cost+1)
 
     elif ( heuristic == "misplaced" ) :
-        pass
+        # cost = h(n)
+        # The heuristic function here is the misplaced tile heuristic.
+        # Given the current board, see how many tiles are not in the correct
+        # position and that is the vaule of h(n)
+        
+        goal = make_tuple(goal)
+        calculated_cost = 0
+
+        # Find how many tiles in curr are different from goal
+        for i in range(0, N*N):
+            if ( goal[i] != board[i] ):
+                calculated_cost += 1
 
 
+        if ( algorithm == 1 ):
+            # For astar
+            # cost = f(n) = h(n) + g(n)
+            calculated_cost += (curr_node.path_cost+1)
 
     # Create child
     child = Node(new_state, curr_node, action, calculated_cost)
@@ -1385,11 +1400,11 @@ def main(argv):
 
     # Make sure heuristic is entered for greedy and astar
     if ( search_algorithm == "greedy" or search_algorithm == "astar" ):
-        if ( heuristic_function != "proximity" and heuristic_function != "euclidean" and heuristic_function != "manhattan" ):
+        if ( heuristic_function != "proximity" and heuristic_function != "euclidean" and heuristic_function != "manhattan" and heuristic_function != "misplaced" ):
             print("You have not selected a valid heuristic for greedy/astar.")
             print("For jugs greedy or astar, type proximity")
             print("For cities greedy or astar, type euclidean")
-            print("For tiles greedy or astar, type manhattan")
+            print("For tiles greedy or astar, type manhattan or misplaced")
             return
     
     if ( search_algorithm == "bfs" ):
