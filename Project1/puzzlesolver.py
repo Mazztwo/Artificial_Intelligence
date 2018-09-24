@@ -896,7 +896,8 @@ def getChildNode(puzzle, configuration, curr_node, action, heuristic, algorithm)
         grid = make_tuple(configuration[1])
         child = citiesGetChildNode(curr_node, action, heuristic, grid, algorithm)
     elif ( puzzle == "tiles" ):
-        child = tilesGetChildNode(curr_node, action, heuristic, algorithm)
+        goal = configuration[3]
+        child = tilesGetChildNode(curr_node, action, goal, heuristic, algorithm)
 
 
     return child
@@ -1080,7 +1081,7 @@ def citiesGetChildNode(curr_node, action, heuristic, grid, algorithm):
 
     return child
 
-def tilesGetChildNode(curr_node, action, heuristic, algorithm):
+def tilesGetChildNode(curr_node, action, goal, heuristic, algorithm):
 
      # Make board string into array
     board = make_tuple(curr_node.state)
@@ -1128,6 +1129,36 @@ def tilesGetChildNode(curr_node, action, heuristic, algorithm):
     if ( heuristic == 0 ):
         # cost = g(n)
         calculated_cost = curr_node.path_cost + 1
+    elif ( heuristic == "manhattan" ):
+        # cost = h(n)
+        # The heuristic function used is the manhattan distance heuristic.  
+        # For every tile on the current board, we must check where it's supposed
+        # to go. Add all the slides together    
+        goal = make_tuple(goal)  
+        calculated_cost = 0
+        
+ 
+
+
+
+
+
+        
+            
+
+
+
+
+
+
+
+        if ( algorithm == 1 ):
+            # cost = f(n) = h(n) + g(n)
+            calculated_cost += (curr_node.path_cost+1)
+
+
+
+
 
     # Create child
     child = Node(new_state, curr_node, action, calculated_cost)
@@ -1329,8 +1360,14 @@ def main(argv):
     if ( len(argv) > 3 ):
         heuristic_function = argv[3]
 
-
-    #################################################################
+    # Make sure heuristic is entered for greedy and astar
+    if ( search_algorithm == "greedy" or search_algorithm == "astar" ):
+        if ( heuristic_function != "proximity" and heuristic_function != "euclidean" and heuristic_function != "manhattan" ):
+            print("You have not selected a valid heuristic for greedy/astar.")
+            print("For jugs greedy or astar, type proximity")
+            print("For cities greedy or astar, type euclidean")
+            print("For tiles greedy or astar, type manhattan")
+            return
     
     if ( search_algorithm == "bfs" ):
         bfs(config_filename)
