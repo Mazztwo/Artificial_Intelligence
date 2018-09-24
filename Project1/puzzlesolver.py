@@ -1136,27 +1136,50 @@ def tilesGetChildNode(curr_node, action, goal, heuristic, algorithm):
         # to go. Add all the slides together    
         goal = make_tuple(goal)  
         calculated_cost = 0
-        
- 
 
+        # Make board and goal into N x N matricies
+        goal_matrix = [ [0] * N for i in range(0,N) ]
+        curr_matrix = [ [0] * N for i in range(0,N) ]
+        tmp = 0
+        for row in range(0,N):
+            for col in range(0,N):
+                goal_matrix[row][col] = goal[tmp]
+                curr_matrix[row][col] = board[tmp]
+                tmp += 1
 
+        for tile in board:
+            # Find the row and col where tile is currently on the board
+            curr_row = 0
+            curr_col = 0
+            for row in range(0,N):
+                for col in range(0,N):
+                    if ( curr_matrix[row][col] == tile ):
+                            curr_row = row
+                            curr_col = col
+    
+            # Find the row and col where tile is on goal 
+            goal_row = 0
+            goal_col = 0
+            for row in range(0,N):
+                for col in range(0,N):
+                    if ( goal_matrix[row][col] == tile ):
+                            goal_row = row
+                            goal_col = col
 
+            # Find the difference between the rows and cols 
+            curr_manhattan = abs(goal_row - curr_row) + abs(goal_col - curr_col)
 
-
-        
-            
-
-
-
-
-
+            # Add current manhattan distance for a tile to running sum
+            calculated_cost += curr_manhattan
 
 
         if ( algorithm == 1 ):
+            # For astar
             # cost = f(n) = h(n) + g(n)
             calculated_cost += (curr_node.path_cost+1)
 
-
+    elif ( heuristic == "misplaced" ) :
+        pass
 
 
 
