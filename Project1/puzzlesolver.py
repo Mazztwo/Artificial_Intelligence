@@ -829,6 +829,7 @@ def tilesGetActions(curr_board):
     # down = 1
     # left = 2
     # right = 3
+ 
     actions = []
 
     # Make board string into array
@@ -849,12 +850,6 @@ def tilesGetActions(curr_board):
     down = blank + N
     left = blank - 1
     right = blank + 1
-
-    # Check if up and down are legal indicies
-    if ( up in range(0, (N*N)) ):
-        actions.append(0)
-    if ( down in range(0, (N*N)) ):
-        actions.append(1)
     
     # Check if left and right are legal indicies
     # Generate array of possible indicies
@@ -873,10 +868,15 @@ def tilesGetActions(curr_board):
             break
 
     # Check if left and right are in legal_values
-    if ( left in legal_values ):
-        actions.append(2)
+     # Check if up and down are legal indicies
     if ( right in legal_values ):
         actions.append(3)
+    if ( up in range(0, (N*N)) ):
+        actions.append(0)
+    if ( left in legal_values ):
+        actions.append(2)
+    if ( down in range(0, (N*N)) ):
+        actions.append(1)
  
     return actions
 
