@@ -17,7 +17,6 @@ import numpy as np
 from scipy.spatial import distance
 import math
 
-# Node class used for BFS, DFS, and Unicost.
 class Node:
     def __init__(self, state, parent, action, path_cost):
         self.state = state
@@ -345,19 +344,6 @@ def greedy(config_filename, heuristic):
     # g(n) --> cost function to order the PriorityQueue,
     # we use h(n) --> heuristic function to order the PriorityQueue.
 
-        
-    #   q = PriorityQueue()
-    #   q.put(5)
-    #   q.put(10)
-    #   q.put(1)
-    #   q.put(5)
-    #   print(q.queue) #[1,5,5,10]
-    #   q.get()
-    #   print(q.queue) #[5,5,10]
-    #   if(10 in q.queue):
-    #       print("raer") raer
-
- 
     # Read in config file and extract appropirate info
     configuration, puzzle, initial_state, goal_state = readConfigFile(config_filename)
 
@@ -470,19 +456,6 @@ def astar(config_filename, heuristic):
     # g(n) --> cost function to order the PriorityQueue,
     # we use f(n) = g(n) + h(n) --> function to order the PriorityQueue.
 
-        
-    #   q = PriorityQueue()
-    #   q.put(5)
-    #   q.put(10)
-    #   q.put(1)
-    #   q.put(5)
-    #   print(q.queue) #[1,5,5,10]
-    #   q.get()
-    #   print(q.queue) #[5,5,10]
-    #   if(10 in q.queue):
-    #       print("raer") raer
-
- 
     # Read in config file and extract appropirate info
     configuration, puzzle, initial_state, goal_state = readConfigFile(config_filename)
 
