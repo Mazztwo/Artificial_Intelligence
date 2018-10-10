@@ -12,8 +12,8 @@
 import sys
 from ast import literal_eval as make_tuple
 from numpy import inf
-import math
 
+# Reads game file config and returns a list of lists/tuples
 def readGameFile(config_filename):
     # Open, read in, and close it config file.
     open_configuration = open(config_filename, 'r')
@@ -25,16 +25,36 @@ def readGameFile(config_filename):
  
     return state
 
+# Vanilla minimax algorithm
 def minimax(state):
 
+    # Keep track of nodes visited
     visited = []
     visited.append(state[0])
     
-    v, visited = maxValue(state,visited)
+    # Start recursion
+    v, visited = maxValue(state, visited)
 
+    print "MINIMAX:"
+    print "Utility value: ", v
+    print "Nodes in order visited: ", visited 
+    print "\n"
+
+# Minimax with alpha beta pruning
+def minimax_a_b(state):
+    
+    # Keep track of nodes visited
+    visited = []
+    visited.append(state[0])
+    
+    # Start recursion
+    v, visited = maxValueAB(state, visited, -inf, inf)
+
+    print "MINIMAX_a_b:"
     print "Utility value: ", v
     print "Nodes in order visited: ", visited 
 
+# maxValue method for vanillia minimax as per the book's algorithm
 def maxValue(state, visited):
     # Terminal test
     if ( terminalTest(state) ):
@@ -50,6 +70,28 @@ def maxValue(state, visited):
 
     return v, visited
 
+# maxValue method for alpha beta pruning as per the book's algorithm
+def maxValueAB(state, visited, alpha, beta):
+    # Terminal test
+    if ( terminalTest(state) ):
+        return utility(state), visited
+    
+    v = -inf
+
+    for s in successors(state):
+        visited.append(s[0])
+        v_temp, visited_temp = minValueAB(s,visited, alpha, beta)
+        v = max(v, v_temp)
+        visited = visited_temp
+
+        if ( v >= beta ):
+            return v, visited
+
+        alpha = max(alpha, v)
+
+    return v, visited
+
+# minValue method for vanillia minimax as per the book's algorithm
 def minValue(state, visited):
     # Terminal test
     if ( terminalTest(state) ):
@@ -62,6 +104,27 @@ def minValue(state, visited):
         v_temp, visited_temp = maxValue(s,visited)
         v = min(v, v_temp)
         visited = visited_temp
+
+    return v, visited
+
+# minValue method for alpha beta pruning as per the book's algorithm
+def minValueAB(state, visited, alpha, beta):
+    # Terminal test
+    if ( terminalTest(state) ):
+        return utility(state), visited
+    
+    v = inf
+
+    for s in successors(state):
+        visited.append(s[0])
+        v_temp, visited_temp = maxValueAB(s,visited, alpha, beta)
+        v = min(v, v_temp)
+        visited = visited_temp
+
+        if ( v <= alpha ):
+            return v, visited
+
+        beta = min(beta, v)
 
     return v, visited
 
@@ -92,19 +155,17 @@ def utility(state):
     # Leaf node is always a tuple in the form (name, utility value)
     return state[1]
 
-
-def minimax_a_b(game_tree):
-    pass
-
-
 def main(argv):
 
     # Read in user input
     config_filename = argv[1]
 
+    # Create game state
     state = readGameFile(config_filename)
 
+    # Call both algorithms
     minimax(state)
+    minimax_a_b(state)
 
 
 if ( __name__ == "__main__" ):
