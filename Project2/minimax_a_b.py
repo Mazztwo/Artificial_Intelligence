@@ -53,6 +53,7 @@ def minimax_a_b(state):
     print "MINIMAX_a_b:"
     print "Utility value: ", v
     print "Nodes in order visited: ", visited 
+    print "\n"
 
 # maxValue method for vanillia minimax as per the book's algorithm
 def maxValue(state, visited):
