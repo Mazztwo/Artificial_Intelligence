@@ -14,8 +14,13 @@ class NaiveAgent():
     #   reward   = reward you received for your last action/state
     #   obs      = current game state
     def pickAction(self, reward, curr_game_state):
-        return self.NOOP
+        return K_F15
         #return K_d
+
+        # We must write some sort of obs to state converter in here...
+
+
+
 
         # return K_a, K_w, K_s, K_d, or self.NOOP
 
@@ -52,6 +57,8 @@ def writeConfigFile(config_filename):
 
     return configuration, puzzle, initial_state, goal_state
 
+
+
 # PARAMATERS
 ###################
 discount = 0.9
@@ -68,19 +75,66 @@ p = PLE(game, fps=fps,force_fps=False)
 agent = NaiveAgent(p.getActionSet())
 reward = 0.0
 
-config_filename = "frogger.config"
+config_filename = 'FROG.config'
 
 
 # p.init()
 # initialize all values here
-# To init Q0(s,a), need to know what state we are in
-vanilla_state = game.getGameState()
+starting_state = game.getGameState()
+
+# state representation:
+# some_state = 
+# {
+#    'frog_x':  x position of frog,
+#    'frog_y':  y position of frog,
+#    'frog_n':  value for what is directly north of frog,
+#    'frog_s':  value for what is directly north of frog,
+#    'frog_e':  value for what is directly north of frog,
+#    'frog_w':  value for what is directly north of frog,
+#    'actions': array of possible actions at this state
+#    'N':       number of times this state has been visited
+# }
+# 
+#
+# possible values for frog_n,s,e,w:
+#  -1 = edge
+#   0 = nothing
+#   1 = car
+#   2 = turtle
+#   3 = water
+#   4 = log
+#   5 = home
+#
+#
+# actions array can look something like this if the frog is on the left edge:
+#   actions = [K_F15, K_w, K_s, k_d]
+
+
+
+vanilla_state = {
+    'frog_x': starting_state['frog_x'],
+    'frog_y': starting_state['frog_y'],
+    'frog_n': 0,
+    'frog_s': -1,
+    'frog_e': 0,
+    'frog_w': 0,
+
+}
+
+# Create Q0 here for every possible action
+#   Q0(vanilla_state,K_F15) = 0
+#   Q0(vanilla_state,K_a) = 0
+#   Q0(vanilla_state,K_s) = 0
+#   Q0(vanilla_state,K_d) = 0
+#   Q0(vanilla_state,K_w) = 0
+
 
 
 # Game loop
 while ( True ):
     if ( p.game_over() ):
         # Save current learned values some how
+
         p.reset_game()
 
     # We need to hijack this. We can use the getGameState() function, but we need to scrub it
@@ -92,3 +146,6 @@ while ( True ):
     action = agent.pickAction(reward, curr_game_state)
     reward = p.act(action)
     #print game.score
+
+
+# Close config file?
