@@ -3,6 +3,7 @@ import frogger_new
 import numpy as np
 from pygame.constants import K_w,K_a,K_s,K_d,K_F15
 import sys
+import random
 
 class NaiveAgent():
     def __init__(self, actions):
@@ -65,77 +66,77 @@ discount = 0.9
 alpha = 0.5
 ###################
 
-# Initial start of game flag
-#   if flag = 0, then it's the very beginning of the game (first time running)
-#   if flag > 0, then it's some iteration of the game other than the first
-start_of_game = 0
+# Initial start of game flag from command line
+#   if flag = 1, then it's the very beginning of the game (first time running)
+#   if flag = 0, then it's some iteration of the game other than the first
+start_of_game = sys.argv[1]
 game = frogger_new.Frogger()
 fps = 30
 p = PLE(game, fps=fps,force_fps=False)
 agent = NaiveAgent(p.getActionSet())
 reward = 0.0
-
 config_filename = 'FROG.config'
 
 
 # p.init()
 # initialize all values here
-starting_state = game.getGameState()
 
-# state representation:
-# some_state = 
-# {
-#    'frog_x':  x position of frog,
-#    'frog_y':  y position of frog,
-#    'frog_n':  value for what is directly north of frog,
-#    'frog_s':  value for what is directly north of frog,
-#    'frog_e':  value for what is directly north of frog,
-#    'frog_w':  value for what is directly north of frog,
-#    'actions': array of possible actions at this state
-#    'N':       number of times this state has been visited
-# }
-# 
-#
-# possible values for frog_n,s,e,w:
-#  -1 = edge
-#   0 = nothing
-#   1 = car
-#   2 = turtle
-#   3 = water
-#   4 = log
-#   5 = home
-#
-#
-# actions array can look something like this if the frog is on the left edge:
-#   actions = [K_F15, K_w, K_s, k_d]
+if ( start_of_game ):
+
+    obs = game.getGameState()
+
+    # state representation:
+    #   some_state = {
+    #       'frog_x':  x position of frog,
+    #       'frog_y':  y position of frog,
+    #       'frog_n':  value for what is directly north of frog,
+    #       'frog_s':  value for what is directly north of frog,
+    #       'frog_e':  value for what is directly north of frog,
+    #       'frog_w':  value for what is directly north of frog,
+    #       'N':       number of times this state has been visited
+    #   }
+    # 
+    #
+    # possible values for frog_n,s,e,w:
+    #  -1 = edge
+    #   0 = nothing
+    #   1 = car
+    #   2 = turtle --> how to tell between water and blank....?
+    #   3 = water
+    #   4 = log
+    #   5 = home
 
 
+    # This is the initial state
+    start_state = {
+        'frog_x': obs['frog_x'],
+        'frog_y': obs['frog_y'],
+        'frog_n': 0,
+        'frog_s': -1,
+        'frog_e': 0,
+        'frog_w': 0,
+        'N': 1
+    }
 
-vanilla_state = {
-    'frog_x': starting_state['frog_x'],
-    'frog_y': starting_state['frog_y'],
-    'frog_n': 0,
-    'frog_s': -1,
-    'frog_e': 0,
-    'frog_w': 0,
+    # Create Q0 here for every possible action
+    #   Q0(start_state,K_F15) = 0
+    #   Q0(start_state,K_a) = 0
+    #   Q0(start_state,K_s) = 0
+    #   Q0(start_state,K_d) = 0
+    #   Q0(start_state,K_w) = 0
+else:
 
-}
+    # Read in Q_TABLE
 
-# Create Q0 here for every possible action
-#   Q0(vanilla_state,K_F15) = 0
-#   Q0(vanilla_state,K_a) = 0
-#   Q0(vanilla_state,K_s) = 0
-#   Q0(vanilla_state,K_d) = 0
-#   Q0(vanilla_state,K_w) = 0
-
+    pass
 
 
 # Game loop
 while ( True ):
     if ( p.game_over() ):
-        # Save current learned values some how
-
+        # Save Q_TABLE to file
         p.reset_game()
+
 
     # We need to hijack this. We can use the getGameState() function, but we need to scrub it
     # in order to set our state to something much smaller.
@@ -145,6 +146,10 @@ while ( True ):
 
     action = agent.pickAction(reward, curr_game_state)
     reward = p.act(action)
+
+    # Calculate all Q's down here
+    # Read in Q from some table, etc.
+
     #print game.score
 
 
