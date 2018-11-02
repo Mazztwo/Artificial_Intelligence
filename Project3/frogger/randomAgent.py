@@ -54,20 +54,31 @@ class NaiveAgent():
     # This is where we will set up our Q-Learning Code
     #   reward   = reward you received for your last action/state
     #   obs      = current game state
-    def pickAction(self, reward, curr_game_state):
+    def pickAction(self, reward, obs):
 
-        return K_F15
         #return K_d
 
-        # We must write some sort of obs to state converter in here...
+        # We must write some sort of obs to state converter in here
 
-
-
+        # Pick a random action at first, else return the normal argmax!
+        #if random.uniform(0, 1) < some_epsilong:
+        #     return random.choice(available_actions) 
+        #else:
+        #    return np.argmax(Q_table(state))
+        
 
         # return K_a, K_w, K_s, K_d, or self.NOOP
 
         #Uncomment the following line to get random actions
         #return self.actions[np.random.randint(0,len(self.actions))]
+
+
+
+
+
+
+        return K_F15
+     
 
 def readConfigFile(config_filename):
     # Open, read in, and close it config file.
