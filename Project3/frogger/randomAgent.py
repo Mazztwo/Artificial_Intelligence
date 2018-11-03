@@ -2,6 +2,7 @@ from ple import PLE
 import frogger_new
 import numpy as np
 from pygame.constants import K_w,K_a,K_s,K_d,K_F15
+from pygame import Rect
 import sys
 import random
 from ast import literal_eval as make_dictionary
@@ -22,10 +23,9 @@ from ast import literal_eval as make_dictionary
 #  -1 = edge
 #   0 = nothing
 #   1 = car
-#   2 = turtle --> how to tell between water and blank....?
-#   3 = water
-#   4 = log
-#   5 = home
+#   2 = turtle/log 
+#   3 = water --> how to tell between water and blank....?
+#   4 = home
 class State:
     
     def __init__(self, frog_x, frog_y, frog_n, frog_s, frog_e, frog_w):
@@ -61,24 +61,53 @@ class NaiveAgent():
         # We must write some sort of obs to state converter in here
 
         # Pick a random action at first, else return the normal argmax!
-        #if random.uniform(0, 1) < some_epsilong:
-        #     return random.choice(available_actions) 
-        #else:
-        #    return np.argmax(Q_table(state))
-        
-
-        # return K_a, K_w, K_s, K_d, or self.NOOP
-
-        #Uncomment the following line to get random actions
-        #return self.actions[np.random.randint(0,len(self.actions))]
-
-
-
-
-
+        # Take a random action (chosen uniformly) with probability epsilon. A larger value for epsilon will increase exploration.
+        if ( random.uniform(0, 1) < EPSILON ):
+        #     return random.choice(AVAILABLE_ACTIONS) 
+            pass
+        else:
+            
+            # Must convert obs to state, then look it up in the Q_table
+            state = obsToState(obs)
+            # Must check if state is in Q-table. If it is not, initialize to all 0s
+            if ( state in Q_TABLE.keys() ):
+                # If state is in Q-table, then return argmax of that state
+                return AVAILABLE_ACTIONS[np.argmax(Q_TABLE[state])]
+                    
 
         return K_F15
      
+
+
+def obsToState(obs):
+    
+    frog_x = obs['frog_x']
+    frog_y = obs['frog_y']
+    frog_n = 0
+    frog_s = 0
+    frog_e = 0
+    frog_w = 0
+
+    # Check if frog is before median. If so only check car objects.
+    if ( frog_y <= 261 ):
+        
+        # Check the position of every car
+        for car in obs['cars']:
+            
+            # Check frog_n
+            if ( (car.y + car.h) >= frog_y ):
+                frog_n = 1
+            # Check frog_s
+            if ( car.y  <= (frog_y+32) ):
+                frog_s = 1
+            # Check frog_e
+            if ( (car.x + car.w) >= frog_x ):
+                frog_e = 1
+            # Check frog_w
+            if ( car.x  <= (frog_x+32) ):
+                frog_w = 1
+
+    return State(frog_x,frog_y,frog_n,frog_s,frog_e,frog_w)
 
 def readConfigFile(config_filename):
     # Open, read in, and close it config file.
@@ -92,19 +121,10 @@ def readConfigFile(config_filename):
     return Q_TABLE
 
 def writeConfigFile(config_filename):
-    # Open, read in, and close it config file.
+    # Open, write out Q-table, and close it config file.
     open_configuration = open(config_filename, 'w')
-    configuration = open_configuration.writelines()
+    open_configuration.write(str(Q_TABLE))
     open_configuration.close()
-
-    # Read in puzzle type
-    puzzle = configuration[0].strip()
-    # Read in initial state on line 3
-    initial_state = configuration[2].strip()
-    # Read in goal state on line 4
-    goal_state = configuration[3].strip()
-
-    return configuration, puzzle, initial_state, goal_state
 
 game = frogger_new.Frogger()
 fps = 30
@@ -114,17 +134,21 @@ reward = 0.0
 
 # PARAMATERS
 ###################
-discount = 0.9
-alpha = 0.5
+DISCOUNT = 0.9
+ALPHA = 0.5
+EPSILON = 0.3
 ###################
+
+# Available actions to agent
+AVAILABLE_ACTIONS = [K_F15, K_w, K_s, K_a, K_d]
+
+# no-op, up, down, left, right
+NUM_ACTIONS = 5
 
 # Initial start of game flag from command line
 #   if flag = 1, then it's the very beginning of the game (first time running), training from scratch
 #   if flag = 0, then it's some iteration of the game other than the first, training from previously calculated Q-table
 start_of_game = int(sys.argv[1])
-
-# no-op, up, down, left, right
-NUM_ACTIONS = 5
 
 # File where Q-table is stored
 config_filename = 'FROG.config'
@@ -175,14 +199,12 @@ while ( True ):
     reward = p.act(action)
     curr_state = game.getGameState()
 
+    # print "X: ", curr_state['frog_x'], "Y: ", curr_state['frog_y']
+
     # Calculate all Q's down here
     # Read in Q from some table, etc.
-
-
 
     state = curr_state
 
     # print game.score
 
-
-# Close config file?
