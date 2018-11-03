@@ -8,7 +8,6 @@ import random
 import pickle
 
 
-
 # state representation:
 #  
 # 'frog_x':  x position of frog
@@ -42,9 +41,6 @@ class State:
     def __hash__(self):
         return hash(str(self.frog_x) + str(self.frog_y) + str(self.frog_n) + str(self.frog_s) + str(self.frog_e) + str(self.frog_w))
     
-
-
-
 class NaiveAgent():
     def __init__(self, actions):
         self.actions = actions
@@ -56,14 +52,10 @@ class NaiveAgent():
     #   obs      = current game state
     def pickAction(self, reward, obs):
 
-        #return K_d
-
-        # We must write some sort of obs to state converter in here
-
-        # Pick a random action at first, else return the normal argmax!
+        # Pick a random action at first, else return the normal argmax
         # Take a random action (chosen uniformly) with probability epsilon. A larger value for epsilon will increase exploration.
         if ( random.uniform(0, 1) < EPSILON ):
-            return random.choice(AVAILABLE_ACTIONS) 
+            return random.choice([0,1,2,3,4]) 
         else:
             # Must convert obs to state, then look it up in the Q_table
             state = obsToState(obs)
@@ -71,11 +63,8 @@ class NaiveAgent():
             if ( state not in Q_TABLE.keys() ):
                 Q_TABLE[state] = np.zeros(NUM_ACTIONS)
             # If state is in Q-table, then return argmax of that state
-            return AVAILABLE_ACTIONS[np.argmax(Q_TABLE[state])]
+            return np.argmax(Q_TABLE[state])
                         
-
-
-
 def obsToState(obs):
     
     frog_x = obs['frog_x']
@@ -87,10 +76,8 @@ def obsToState(obs):
 
     # Check if frog is before median. If so only check car objects.
     if ( frog_y <= 261 ):
-        
         # Check the position of every car
         for car in obs['cars']:
-            
             # Check frog_n
             if ( (car.y + car.h) >= frog_y ):
                 frog_n = 1
@@ -103,6 +90,8 @@ def obsToState(obs):
             # Check frog_w
             if ( car.x  <= (frog_x+32) ):
                 frog_w = 1
+    else:
+        pass
 
     return State(frog_x,frog_y,frog_n,frog_s,frog_e,frog_w)
 
@@ -130,7 +119,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.5
-EPSILON = 0.3
+EPSILON = 0.2
 ###################
 
 # Available actions to agent
@@ -189,15 +178,13 @@ while ( True ):
         p.reset_game()
 
     action = agent.pickAction(reward, state)
-    reward = p.act(action)
-    curr_state = game.getGameState()
+    reward = p.act(AVAILABLE_ACTIONS[action])
+    next_state = game.getGameState()
 
-    # print "X: ", curr_state['frog_x'], "Y: ", curr_state['frog_y']
+    # Update curr Q in Q-table
 
-    # Calculate all Q's down here
-    # Read in Q from some table, etc.
 
-    state = curr_state
+    state = next_state
 
     # print game.score
 
