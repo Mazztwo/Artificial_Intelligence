@@ -52,6 +52,8 @@ class NaiveAgent():
     #   obs      = current game state
     def pickAction(self, reward, obs):
 
+        # return K_F15
+
         # Pick a random action at first, else return the normal argmax
         # Take a random action (chosen uniformly) with probability epsilon. A larger value for epsilon will increase exploration.
         if ( random.uniform(0, 1) < EPSILON ):
@@ -90,9 +92,10 @@ def obsToState(obs):
             # Check frog_w
             if ( car.x  <= (frog_x+32) ):
                 frog_w = 1
+    # Frog is at median or somwhere in the river
     else:
+        # Must check all river objects and homeR
         pass
-
     return State(frog_x,frog_y,frog_n,frog_s,frog_e,frog_w)
 
 def readConfigFile(config_filename):
@@ -119,7 +122,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.5
-EPSILON = 0.2
+EPSILON = 0.6
 ###################
 
 # Available actions to agent
@@ -169,7 +172,6 @@ else:
     # Read in Q_TABLE from FROG.config
     Q_TABLE = readConfigFile(config_filename)
 
-
 # Game loop
 while ( True ):
     if ( p.game_over() ):
@@ -179,6 +181,11 @@ while ( True ):
 
     action = agent.pickAction(reward, state)
     reward = p.act(AVAILABLE_ACTIONS[action])
+
+    #reward = p.act(action)
+    #print reward
+    #continue
+
     next_obs = game.getGameState()
     next_state = obsToState(next_obs)
     reg_state = obsToState(state)
