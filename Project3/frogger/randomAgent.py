@@ -97,7 +97,7 @@ def obsToState(obs):
 
 def readConfigFile(config_filename):
     # Open, read in, and close it config file.
-    open_configuration = open(config_filename, 'r')
+    open_configuration = open(config_filename, 'rb')
     Q_TABLE = pickle.load(open_configuration)
     open_configuration.close()
 
@@ -105,7 +105,7 @@ def readConfigFile(config_filename):
 
 def writeConfigFile(config_filename):
     # Open, write out Q-table, and close it config file.
-    open_configuration = open(config_filename, 'w')
+    open_configuration = open(config_filename, 'wb')
     pickle.dump(Q_TABLE, open_configuration)
     open_configuration.close()
 
@@ -182,7 +182,8 @@ while ( True ):
     next_state = game.getGameState()
 
     # Update curr Q in Q-table
-
+    currQ = Q_TABLE[state][action]
+    Q_TABLE[state][action] = currQ + (ALPHA * (reward + (DISCOUNT *())))
 
     state = next_state
 
