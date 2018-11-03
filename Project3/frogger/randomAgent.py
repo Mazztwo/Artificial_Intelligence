@@ -55,8 +55,8 @@ class NaiveAgent():
         # return K_F15
 
         # Pick a random action at first, else return the normal argmax
-        # Take a random action (chosen uniformly) with probability epsilon. A larger value for epsilon will increase exploration.
-        if ( random.uniform(0, 1) < EPSILON ):
+        # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
+        if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
             return random.choice([0,1,2,3,4]) 
         else:
             # Must convert obs to state, then look it up in the Q_table
@@ -122,7 +122,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.5
-EPSILON = 0.6
+EXPLORATION_FACTOR = 0.6
 ###################
 
 # Available actions to agent
