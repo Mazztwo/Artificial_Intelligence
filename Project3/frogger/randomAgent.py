@@ -179,13 +179,19 @@ while ( True ):
 
     action = agent.pickAction(reward, state)
     reward = p.act(AVAILABLE_ACTIONS[action])
-    next_state = game.getGameState()
+    next_obs = game.getGameState()
+    next_state = obsToState(next_obs)
+    reg_state = obsToState(state)
+
+    # If next_state is not in Q-table, add it
+    if ( next_state not in Q_TABLE.keys() ):
+        Q_TABLE[next_state] = np.zeros(NUM_ACTIONS)
 
     # Update curr Q in Q-table
-    currQ = Q_TABLE[state][action]
-    Q_TABLE[state][action] = currQ + (ALPHA * (reward + (DISCOUNT *())))
+    currQ = Q_TABLE[reg_state][action]
+    Q_TABLE[reg_state][action] = currQ + (ALPHA * ((reward + (DISCOUNT * (np.max(Q_TABLE[next_state]))))-currQ))
 
-    state = next_state
+    state = next_obs
 
     # print game.score
 
