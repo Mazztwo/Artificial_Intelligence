@@ -5,7 +5,7 @@ from pygame.constants import K_w,K_a,K_s,K_d,K_F15
 from pygame import Rect
 import sys
 import random
-from ast import literal_eval as make_dictionary
+import pickle
 
 
 
@@ -63,20 +63,17 @@ class NaiveAgent():
         # Pick a random action at first, else return the normal argmax!
         # Take a random action (chosen uniformly) with probability epsilon. A larger value for epsilon will increase exploration.
         if ( random.uniform(0, 1) < EPSILON ):
-        #     return random.choice(AVAILABLE_ACTIONS) 
-            pass
+            return random.choice(AVAILABLE_ACTIONS) 
         else:
-            
             # Must convert obs to state, then look it up in the Q_table
             state = obsToState(obs)
-            # Must check if state is in Q-table. If it is not, initialize to all 0s
-            if ( state in Q_TABLE.keys() ):
-                # If state is in Q-table, then return argmax of that state
-                return AVAILABLE_ACTIONS[np.argmax(Q_TABLE[state])]
-                    
+             # If state is not in Q-table, add it
+            if ( state not in Q_TABLE.keys() ):
+                Q_TABLE[state] = np.zeros(NUM_ACTIONS)
+            # If state is in Q-table, then return argmax of that state
+            return AVAILABLE_ACTIONS[np.argmax(Q_TABLE[state])]
+                        
 
-        return K_F15
-     
 
 
 def obsToState(obs):
@@ -112,18 +109,15 @@ def obsToState(obs):
 def readConfigFile(config_filename):
     # Open, read in, and close it config file.
     open_configuration = open(config_filename, 'r')
-    configuration = open_configuration.readlines()
+    Q_TABLE = pickle.load(open_configuration)
     open_configuration.close()
-
-    # Create dictionary from string
-    Q_TABLE = make_dictionary(configuration[0].strip())
 
     return Q_TABLE
 
 def writeConfigFile(config_filename):
     # Open, write out Q-table, and close it config file.
     open_configuration = open(config_filename, 'w')
-    open_configuration.write(str(Q_TABLE))
+    pickle.dump(Q_TABLE, open_configuration)
     open_configuration.close()
 
 game = frogger_new.Frogger()
@@ -171,7 +165,7 @@ if ( start_of_game ):
     Q_TABLE = dict()
 
     # Initialize start state - modified
-    start_state = State(state['frog_x'], state['frog_y'], 0, -1, 0, 0 )
+    start_state = State(state['frog_x'], state['frog_y'], 0, 0, 0, 0 )
   
      # Create Q0 here for every possible action
     #   Q0(start_state,K_F15) = 0
@@ -185,14 +179,13 @@ else:
 
     # Read in Q_TABLE from FROG.config
     Q_TABLE = readConfigFile(config_filename)
-    pass
 
 
 # Game loop
 while ( True ):
     if ( p.game_over() ):
         # Save Q_TABLE to file
-
+        writeConfigFile(config_filename)
         p.reset_game()
 
     action = agent.pickAction(reward, state)
