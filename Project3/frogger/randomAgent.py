@@ -95,7 +95,7 @@ def obsToState(obs):
             if ( car.x  <= (frog_x+32) ):
                 frog_w = 1
     # Frog is at the median
-    else if (frog_y == 261):
+    elif (frog_y == 261):
         
         # North of frog is either river or river object
         frog_n = 3
@@ -172,7 +172,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.5
-EXPLORATION_FACTOR = 0
+EXPLORATION_FACTOR = 0.6
 ###################
 
 # Available actions to agent
