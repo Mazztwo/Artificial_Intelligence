@@ -53,26 +53,30 @@ class NaiveAgent():
 
         # return K_F15
 
-        # Pick a random action at first, else return the normal argmax
-        # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
-        #if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
-        #    return random.choice([0,1,2,3,4]) 
-        #else:
         # Must convert obs to state, then look it up in the Q_table
         state = obsToState(obs)
 
-            # If state is not in Q-table, add it
+        # If state is not in Q-table, add it
         if ( state not in Q_TABLE.keys() ):
             Q_TABLE[state] = np.zeros(NUM_ACTIONS)
 
-        # If state is in Q-table, then return argmax of that state
-        # Add F to Q table entries and pick max of that
-        curr_actions = Q_TABLE[state]
-        for i in range(NUM_ACTIONS):
-            curr_actions[i] = curr_actions[i] + (F_CONSTANT / 1 + N_TABLE[state])
+        # If state is not in N-table, add it
+        if ( state not in N_TABLE.keys() ):
+            N_TABLE[state] = np.zeros(NUM_ACTIONS)
 
-        #return np.argmax(Q_TABLE[state])
-        return np.argmax(curr_actions)
+        # Pick a random action at first, else return the normal argmax
+        # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
+        if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
+            # Put an extra 1 here instead of 0 (no-op) to encourage forward movement
+            return random.choice([1,1,2,3,4]) 
+        else:
+            # Return argmax of (state + inflation factor)
+            curr_actions = Q_TABLE[state]
+            for i in range(NUM_ACTIONS):
+                curr_actions[i] = curr_actions[i] + (F_CONSTANT / 1 + N_TABLE[state][i])
+
+            #return np.argmax(Q_TABLE[state])
+            return np.argmax(curr_actions)
                         
 def obsToState(obs):
     
@@ -250,20 +254,20 @@ while ( True ):
 
     action = agent.pickAction(reward, state)
     reward = p.act(AVAILABLE_ACTIONS[action])
-
-    # Add to N table if state not there
-    if ( state not in N_TABLE.keys() ):
-        N_TABLE[state] = np.zeros(NUM_ACTIONS)
-    else:
-        # else increment N-table value
-        N_TABLE[state] = N_TABLE[state] + 1
-
+    
+    # need to incentivize forward movement...
+    #if ( action == 1 ):
+    #    reward = reward + 0.1
     #print reward
     #continue
 
     next_obs = game.getGameState()
     next_state = obsToState(next_obs)
     reg_state = obsToState(state)
+
+    
+    # Increment N-table value
+    N_TABLE[reg_state][action] = N_TABLE[reg_state][action] + 1
 
     # If next_state is not in Q-table, add it
     if ( next_state not in Q_TABLE.keys() ):
@@ -275,7 +279,7 @@ while ( True ):
 
     # Update curr Q in Q-table
     currQ = Q_TABLE[reg_state][action]
-    Q_TABLE[reg_state][action] = currQ + (ALPHA * ((reward + (DISCOUNT * (np.max(Q_TABLE[next_state])))+(F_CONSTANT / 1 + N_TABLE[next_state]))-currQ))
+    Q_TABLE[reg_state][action] = currQ + (ALPHA * ((reward + (DISCOUNT * (np.max(Q_TABLE[next_state])))+(F_CONSTANT / 1 + N_TABLE[next_state][action]))-currQ))
 
     state = next_obs
 
