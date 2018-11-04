@@ -19,11 +19,10 @@ import pickle
 #   
 #
 # possible values for frog_n,s,e,w:
-#  -1 = edge
-#   0 = nothing
+#   0 = road
 #   1 = car
 #   2 = turtle/log 
-#   3 = water --> how to tell between water and blank....?
+#   3 = water
 #   4 = home
 class State:
     
@@ -71,13 +70,16 @@ def obsToState(obs):
     
     frog_x = obs['frog_x']
     frog_y = obs['frog_y']
-    frog_n = 0
-    frog_s = 0
-    frog_e = 0
-    frog_w = 0
-
+   
     # Check if frog is before median. If so only check car objects.
-    if ( frog_y <= 261 ):
+    if ( frog_y < 261 ):
+
+        # If there isn't a car, then there is road
+        frog_n = 0
+        frog_s = 0
+        frog_e = 0
+        frog_w = 0
+
         # Check the position of every car
         for car in obs['cars']:
             # Check frog_n
@@ -92,10 +94,58 @@ def obsToState(obs):
             # Check frog_w
             if ( car.x  <= (frog_x+32) ):
                 frog_w = 1
-    # Frog is at median or somwhere in the river
+    # Frog is at the median
+    else if (frog_y == 261):
+        
+        # North of frog is either river or river object
+        frog_n = 3
+        # South of frog is either car or road
+        frog_s = 0
+        # East/West of car is road
+        frog_e = 0
+        frog_w = 0
+
+        # Check north of frog for river object
+        for riverob in obs['rivers']:
+            # Check frog_n
+            if ( (riverob.y + riverob.h) >= frog_y ):
+                frog_n = 2
+
+        # Check south of frog for car
+        for car in obs['cars']:
+            # Check frog_s
+            if ( car.y  <= (frog_y+32) ):
+                frog_s = 1
+    # Frog is somewhere in the river
     else:
-        # Must check all river objects and homeR
-        pass
+
+        # If there isn't a river object, then there is water
+        frog_n = 3
+        frog_s = 3
+        frog_e = 3
+        frog_w = 3
+
+        # Must check all river objects W
+        for riverob in obs['rivers']:
+            # Check frog_n
+            if ( (riverob.y + riverob.h) >= frog_y ):
+                frog_n = 2
+            # Check frog_s
+            if ( riverob.y  <= (frog_y+32) ):
+                frog_s = 2
+            # Check frog_e
+            if ( (riverob.x + riverob.w) >= frog_x ):
+                frog_e = 2
+            # Check frog_w
+            if ( riverob.x  <= (frog_x+32) ):
+                frog_w = 2
+
+        # Check if there is a home in front of frog
+        for home in obs['homeR']:
+            # Only need to check frog_n
+            if ( (home.y + home.h) >= frog_y ):
+                frog_n = 4
+
     return State(frog_x,frog_y,frog_n,frog_s,frog_e,frog_w)
 
 def readConfigFile(config_filename):
@@ -122,7 +172,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.5
-EXPLORATION_FACTOR = 0.6
+EXPLORATION_FACTOR = 0
 ###################
 
 # Available actions to agent
