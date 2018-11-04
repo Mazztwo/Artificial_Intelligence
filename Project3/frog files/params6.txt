@@ -1,0 +1,3 @@
+DISCOUNT = 1
+ALPHA = 0.5
+EPSILON = 0.7

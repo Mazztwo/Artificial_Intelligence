@@ -170,9 +170,9 @@ reward = 0.0
 
 # PARAMATERS
 ###################
-DISCOUNT = 0.9
+DISCOUNT = 1
 ALPHA = 0.5
-EXPLORATION_FACTOR = 0.6
+EXPLORATION_FACTOR = 0.7
 ###################
 
 # Available actions to agent
