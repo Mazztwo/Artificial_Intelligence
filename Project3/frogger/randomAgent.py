@@ -55,16 +55,24 @@ class NaiveAgent():
 
         # Pick a random action at first, else return the normal argmax
         # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
-        if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
-            return random.choice([0,1,2,3,4]) 
-        else:
-            # Must convert obs to state, then look it up in the Q_table
-            state = obsToState(obs)
-             # If state is not in Q-table, add it
-            if ( state not in Q_TABLE.keys() ):
-                Q_TABLE[state] = np.zeros(NUM_ACTIONS)
-            # If state is in Q-table, then return argmax of that state
-            return np.argmax(Q_TABLE[state])
+        #if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
+        #    return random.choice([0,1,2,3,4]) 
+        #else:
+        # Must convert obs to state, then look it up in the Q_table
+        state = obsToState(obs)
+
+            # If state is not in Q-table, add it
+        if ( state not in Q_TABLE.keys() ):
+            Q_TABLE[state] = np.zeros(NUM_ACTIONS)
+
+        # If state is in Q-table, then return argmax of that state
+        # Add F to Q table entries and pick max of that
+        curr_actions = Q_TABLE[state]
+        for i in range(NUM_ACTIONS):
+            curr_actions[i] = curr_actions[i] + (F_CONSTANT / 1 + N_TABLE[state])
+
+        #return np.argmax(Q_TABLE[state])
+        return np.argmax(curr_actions)
                         
 def obsToState(obs):
     
@@ -148,19 +156,25 @@ def obsToState(obs):
 
     return State(frog_x,frog_y,frog_n,frog_s,frog_e,frog_w)
 
-def readConfigFile(config_filename):
+def readConfigFile(config_filename,n_table_filename):
     # Open, read in, and close it config file.
     open_configuration = open(config_filename, 'rb')
+    open_n = open(n_table_filename, 'rb')
     Q_TABLE = pickle.load(open_configuration)
+    N_TABLE = pickle.load(open_n)
     open_configuration.close()
+    open_n.close()
 
-    return Q_TABLE
+    return Q_TABLE, N_TABLE
 
-def writeConfigFile(config_filename):
+def writeConfigFile(config_filename, n_table_filename):
     # Open, write out Q-table, and close it config file.
     open_configuration = open(config_filename, 'wb')
+    open_n = open(n_table_filename, 'wb')
     pickle.dump(Q_TABLE, open_configuration)
+    pickle.dump(N_TABLE, open_n)
     open_configuration.close()
+    open_n.close()
 
 game = frogger_new.Frogger()
 fps = 30
@@ -172,7 +186,8 @@ reward = 0.0
 ###################
 DISCOUNT = 1
 ALPHA = 0.5
-EXPLORATION_FACTOR = 0.7
+EXPLORATION_FACTOR = 0.2
+F_CONSTANT = 5
 ###################
 
 # Available actions to agent
@@ -188,6 +203,8 @@ start_of_game = int(sys.argv[1])
 
 # File where Q-table is stored
 config_filename = 'FROG.config'
+# File where N-table is stored
+n_table_filename = "N.config"
 
 # Initial vanilla game state
 state = game.getGameState()
@@ -205,6 +222,7 @@ if ( start_of_game ):
     #    
     # etc..
     Q_TABLE = dict()
+    N_TABLE = dict()
 
     # Initialize start state - modified
     start_state = State(state['frog_x'], state['frog_y'], 0, 0, 0, 0 )
@@ -216,23 +234,30 @@ if ( start_of_game ):
     #   Q0(start_state,K_a) = 0  
     #   Q0(start_state,K_d) = 0
     Q_TABLE[start_state] = np.zeros(NUM_ACTIONS)
+    N_TABLE[start_state] = np.zeros(NUM_ACTIONS)
 
 else:
 
-    # Read in Q_TABLE from FROG.config
-    Q_TABLE = readConfigFile(config_filename)
+    # Read in Q_TABLE/N_TABLE from FROG.config and N.config
+    Q_TABLE, N_TABLE = readConfigFile(config_filename, n_table_filename)
 
 # Game loop
 while ( True ):
     if ( p.game_over() ):
         # Save Q_TABLE to file
-        writeConfigFile(config_filename)
+        writeConfigFile(config_filename, n_table_filename)
         p.reset_game()
 
     action = agent.pickAction(reward, state)
     reward = p.act(AVAILABLE_ACTIONS[action])
 
-    #reward = p.act(action)
+    # Add to N table if state not there
+    if ( state not in N_TABLE.keys() ):
+        N_TABLE[state] = np.zeros(NUM_ACTIONS)
+    else:
+        # else increment N-table value
+        N_TABLE[state] = N_TABLE[state] + 1
+
     #print reward
     #continue
 
@@ -244,9 +269,13 @@ while ( True ):
     if ( next_state not in Q_TABLE.keys() ):
         Q_TABLE[next_state] = np.zeros(NUM_ACTIONS)
 
+    # Check N table for new state
+    if ( next_state not in N_TABLE.keys() ):
+        N_TABLE[next_state] = np.zeros(NUM_ACTIONS)
+
     # Update curr Q in Q-table
     currQ = Q_TABLE[reg_state][action]
-    Q_TABLE[reg_state][action] = currQ + (ALPHA * ((reward + (DISCOUNT * (np.max(Q_TABLE[next_state]))))-currQ))
+    Q_TABLE[reg_state][action] = currQ + (ALPHA * ((reward + (DISCOUNT * (np.max(Q_TABLE[next_state])))+(F_CONSTANT / 1 + N_TABLE[next_state]))-currQ))
 
     state = next_obs
 
