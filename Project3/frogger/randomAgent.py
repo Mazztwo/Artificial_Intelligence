@@ -72,12 +72,12 @@ class NaiveAgent():
 
         else:
             # Return argmax of (state + inflation factor)
-            curr_actions = Q_TABLE[state]
-            for i in range(NUM_ACTIONS):
-                curr_actions[i] = curr_actions[i] + (F_CONSTANT / 1 + N_TABLE[state][i])
+            #curr_actions = Q_TABLE[state]
+            #for i in range(NUM_ACTIONS):
+            #    curr_actions[i] = curr_actions[i] + (F_CONSTANT / 1 + N_TABLE[state][i])
 
-            #return np.argmax(Q_TABLE[state])
-            return np.argmax(curr_actions)
+            return np.argmax(Q_TABLE[state])
+            #return np.argmax(curr_actions)
                         
 def obsToState(obs):
     
@@ -268,20 +268,20 @@ while ( True ):
 
     
     # Increment N-table value
-    N_TABLE[reg_state][action] = N_TABLE[reg_state][action] + 1
+    #N_TABLE[reg_state][action] = N_TABLE[reg_state][action] + 1
 
     # If next_state is not in Q-table, add it
     if ( next_state not in Q_TABLE.keys() ):
         Q_TABLE[next_state] = np.zeros(NUM_ACTIONS)
 
     # Check N table for new state
-    if ( next_state not in N_TABLE.keys() ):
-        N_TABLE[next_state] = np.zeros(NUM_ACTIONS)
+    #if ( next_state not in N_TABLE.keys() ):
+    #    N_TABLE[next_state] = np.zeros(NUM_ACTIONS)
 
     # Update curr Q in Q-table
     currQ = Q_TABLE[reg_state][action]
-    Q_sample = reward +  (DISCOUNT * (np.max(Q_TABLE[next_state]))+(F_CONSTANT / 1 + N_TABLE[next_state][action]))
-    Q_TABLE[reg_state][action] = currQ + (ALPHA * (Q_sample-currQ))
+    Q_sample = reward +  DISCOUNT * np.max(Q_TABLE[next_state]) #+(F_CONSTANT / 1 + N_TABLE[next_state][action])) 
+    Q_TABLE[reg_state][action] = currQ + (ALPHA * (Q_sample - currQ))
 
     state = next_obs
 
