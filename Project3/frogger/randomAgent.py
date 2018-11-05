@@ -67,8 +67,9 @@ class NaiveAgent():
         # Pick a random action at first, else return the normal argmax
         # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
         if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
-            # Put an extra 1 here instead of 0 (no-op) to encourage forward movement
-            return random.choice([1,1,2,3,4]) 
+            # Put an extra forward here
+            return random.choice([0,0,2,3,4]) 
+
         else:
             # Return argmax of (state + inflation factor)
             curr_actions = Q_TABLE[state]
@@ -188,14 +189,14 @@ reward = 0.0
 
 # PARAMATERS
 ###################
-DISCOUNT = 1
+DISCOUNT = 0.9
 ALPHA = 0.5
-EXPLORATION_FACTOR = 0.2
+EXPLORATION_FACTOR = 0.5
 F_CONSTANT = 5
 ###################
 
 # Available actions to agent
-AVAILABLE_ACTIONS = [K_F15, K_w, K_s, K_a, K_d]
+AVAILABLE_ACTIONS = [K_w, K_s, K_a, K_d, K_F15]
 
 # no-op, up, down, left, right
 NUM_ACTIONS = 5
