@@ -192,7 +192,7 @@ reward = 0.0
 DISCOUNT = 0.9
 ALPHA = 0.5
 EXPLORATION_FACTOR = 0.2
-F_CONSTANT = 5
+F_CONSTANT = 2
 ###################
 
 # Available actions to agent
@@ -202,7 +202,7 @@ AVAILABLE_ACTIONS = [K_w, K_s, K_a, K_d, K_F15]
 NUM_ACTIONS = 5
 
 # Initial start of game flag from command line
-#   if flag = 1, then it's the very beginning of the game (first time running), training from scratch
+#   if flag = 1, then it's the very beginning of the  game (first time running), training from scratch
 #   if flag = 0, then it's some iteration of the game other than the first, training from previously calculated Q-table
 start_of_game = int(sys.argv[1])
 
@@ -280,9 +280,11 @@ while ( True ):
 
     # Update curr Q in Q-table
     currQ = Q_TABLE[reg_state][action]
-    Q_TABLE[reg_state][action] = currQ + (ALPHA * ((reward + (DISCOUNT * (np.max(Q_TABLE[next_state])))+(F_CONSTANT / 1 + N_TABLE[next_state][action]))-currQ))
+    Q_sample = reward +  (DISCOUNT * (np.max(Q_TABLE[next_state]))+(F_CONSTANT / 1 + N_TABLE[next_state][action]))
+    Q_TABLE[reg_state][action] = currQ + (ALPHA * (Q_sample-currQ))
 
     state = next_obs
+
 
     # print game.score
 
