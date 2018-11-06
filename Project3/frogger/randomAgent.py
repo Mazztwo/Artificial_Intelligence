@@ -69,14 +69,14 @@ class NaiveAgent():
             Q_TABLE[state] = np.zeros(NUM_ACTIONS)
 
         # If state is not in N-table, add it
-        if ( state not in N_TABLE.keys() ):
-            N_TABLE[state] = np.zeros(NUM_ACTIONS)
+        #if ( state not in N_TABLE.keys() ):
+        #    N_TABLE[state] = np.zeros(NUM_ACTIONS)
 
         # Pick a random action at first, else return the normal argmax
         # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
         if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
             # Put an extra forward here
-            return random.choice([0,0,2,3,4]) 
+            return random.choice([0,1,2,3,4]) 
 
         else:
             # Return argmax of (state + inflation factor)
@@ -286,7 +286,7 @@ reward = 0.0
 # PARAMATERS
 ###################
 DISCOUNT = 0.9
-ALPHA = 0.5
+ALPHA = 0.6
 EXPLORATION_FACTOR = 0.2
 F_CONSTANT = 2
 ###################
@@ -340,7 +340,8 @@ if ( start_of_game ):
 else:
 
     # Read in Q_TABLE/N_TABLE from FROG.config and N.config
-    Q_TABLE, N_TABLE = readConfigFile(config_filename, n_table_filename)
+    #Q_TABLE, N_TABLE = readConfigFile(config_filename, n_table_filename)
+    Q_TABLE = readConfigFile(config_filename, n_table_filename)
 
 # Game loop
 while ( True ):
