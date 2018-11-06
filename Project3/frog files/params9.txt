@@ -1,0 +1,4 @@
+DISCOUNT = 0.9
+ALPHA = 0.5
+EXPLORATION_FACTOR = 0.2
+F_CONSTANT = 2 --> not used
