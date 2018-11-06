@@ -287,7 +287,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.6
-EXPLORATION_FACTOR = 0.2
+EXPLORATION_FACTOR = 0.15
 F_CONSTANT = 2
 ###################
 
