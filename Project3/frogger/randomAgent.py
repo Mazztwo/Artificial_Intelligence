@@ -13,9 +13,13 @@ import pickle
 # 'frog_x':  x position of frog
 # 'frog_y':  y position of frog
 # 'frog_n':  value for what is directly north of frog
+# 'frog_n2': value for what is directly two north of frog
 # 'frog_s':  value for what is directly south of frog
+# 'frog_s2': value for what is directly two south of frog
 # 'frog_e':  value for what is directly east of frog
+# 'frog_e2': value for what is directly two east of frog
 # 'frog_w':  value for what is directly west of frog
+# 'frog_w2':  value for what is directly two west of frog
 #   
 #
 # possible values for frog_n,s,e,w:
@@ -26,19 +30,23 @@ import pickle
 #   4 = home
 class State:
     
-    def __init__(self, frog_x, frog_y, frog_n, frog_s, frog_e, frog_w):
+    def __init__(self, frog_x, frog_y, frog_n, frog_n2, frog_s, frog_s2, frog_e, frog_e2, frog_w, frog_w2):
         self.frog_x = frog_x
         self.frog_y = frog_y
         self.frog_n = frog_n
         self.frog_s = frog_s
         self.frog_e = frog_e
         self.frog_w = frog_w
+        self.frog_n2 = frog_n2
+        self.frog_s2 = frog_s2
+        self.frog_e2 = frog_e2
+        self.frog_w2 = frog_w2
         
     def __eq__(self, other):
-        return isinstance(other, State) and self.frog_x == other.frog_x and self.frog_y == other.frog_y and self.frog_n == other.frog_n and self.frog_s == other.frog_s and self.frog_e == other.frog_e and self.frog_w == other.frog_w
+        return isinstance(other, State) and self.frog_x == other.frog_x and self.frog_y == other.frog_y and self.frog_n == other.frog_n and self.frog_s == other.frog_s and self.frog_e == other.frog_e and self.frog_w == other.frog_w and self.frog_n2 == other.frog_n2 and self.frog_s2 == other.frog_s2 and self.frog_e2 == other.frog_e2 and self.frog_w2 == other.frog_w2
 
     def __hash__(self):
-        return hash(str(self.frog_x) + str(self.frog_y) + str(self.frog_n) + str(self.frog_s) + str(self.frog_e) + str(self.frog_w))
+        return hash(str(self.frog_x) + str(self.frog_y) + str(self.frog_n) + str(self.frog_n2) + str(self.frog_s) + str(self.frog_s2) + str(self.frog_e) + str(self.frog_e2) + str(self.frog_w) + str(self.frog_w2))
     
 class NaiveAgent():
     def __init__(self, actions):
@@ -85,13 +93,17 @@ def obsToState(obs):
     frog_y = obs['frog_y']
    
     # Check if frog is before median. If so only check car objects.
-    if ( frog_y < 261 ):
+    if ( frog_y < 229 ):
 
         # If there isn't a car, then there is road
         frog_n = 0
         frog_s = 0
         frog_e = 0
         frog_w = 0
+        frog_n2 = 0
+        frog_s2 = 0
+        frog_e2 = 0
+        frog_w2 = 0
 
         # Check the position of every car
         for car in obs['cars']:
@@ -107,6 +119,61 @@ def obsToState(obs):
             # Check frog_w
             if ( car.x  <= (frog_x+32) ):
                 frog_w = 1
+            # Check frog_n2
+            if ( 2*(car.y + car.h) >= frog_y ):
+                frog_n2 = 1
+            # Check frog_s2
+            if ( 2*car.y  <= (frog_y+32) ):
+                frog_s2 = 1
+            # Check frog_e2
+            if ( 2*(car.x + car.w) >= frog_x ):
+                frog_e2 = 1
+            # Check frog_w2
+            if ( 2*car.x  <= (frog_x+32) ):
+                frog_w2 = 1
+    # Frog is one space from median, check both cars and rivers to the north
+    elif ( frog_y < 261 and frog_y > 229 ):
+        frog_n = 0
+        frog_s = 0
+        frog_e = 0
+        frog_w = 0
+        frog_n2 = 3 # 2 spaces up is water
+        frog_s2 = 0
+        frog_e2 = 0
+        frog_w2 = 0  
+
+        # Check the position of every car
+        for car in obs['cars']:
+            # Check frog_n
+            if ( (car.y + car.h) >= frog_y ):
+                frog_n = 1
+            # Check frog_s
+            if ( car.y  <= (frog_y+32) ):
+                frog_s = 1
+            # Check frog_e
+            if ( (car.x + car.w) >= frog_x ):
+                frog_e = 1
+            # Check frog_w
+            if ( car.x  <= (frog_x+32) ):
+                frog_w = 1
+            # Check frog_n2
+            if ( 2*(car.y + car.h) >= frog_y ):
+                frog_n2 = 1
+            # Check frog_s2
+            if ( 2*car.y  <= (frog_y+32) ):
+                frog_s2 = 1
+            # Check frog_e2
+            if ( 2*(car.x + car.w) >= frog_x ):
+                frog_e2 = 1
+            # Check frog_w2
+            if ( 2*car.x  <= (frog_x+32) ):
+                frog_w2 = 1
+
+        # Check north of frog for river object
+        for riverob in obs['rivers']:
+            # Check frog_n2
+            if ( 2*(riverob.y + riverob.h) >= frog_y ):
+                frog_n2 = 2
     # Frog is at the median
     elif (frog_y == 261):
         
@@ -114,20 +181,30 @@ def obsToState(obs):
         frog_n = 3
         # South of frog is either car or road
         frog_s = 0
-        # East/West of car is road
+        # East/West of frog is road
         frog_e = 0
         frog_w = 0
+
+        frog_n2 = 3
+        frog_s2 = 0
+        frog_e2 = 0
+        frog_w2 = 0
+        
 
         # Check north of frog for river object
         for riverob in obs['rivers']:
             # Check frog_n
             if ( (riverob.y + riverob.h) >= frog_y ):
                 frog_n = 2
+            if ( 2*(riverob.y + riverob.h) >= frog_y ):
+                frog_n = 2
 
         # Check south of frog for car
         for car in obs['cars']:
             # Check frog_s
             if ( car.y  <= (frog_y+32) ):
+                frog_s = 1
+            if ( 2*car.y  <= (frog_y+32) ):
                 frog_s = 1
     # Frog is somewhere in the river
     else:
@@ -137,6 +214,10 @@ def obsToState(obs):
         frog_s = 3
         frog_e = 3
         frog_w = 3
+        frog_n2 = 3
+        frog_s2 = 3
+        frog_e2 = 3
+        frog_w2 = 3
 
         # Must check all river objects W
         for riverob in obs['rivers']:
@@ -153,33 +234,48 @@ def obsToState(obs):
             if ( riverob.x  <= (frog_x+32) ):
                 frog_w = 2
 
+            # Check frog_n
+            if ( 2*(riverob.y + riverob.h) >= frog_y ):
+                frog_n2 = 2
+            # Check frog_s
+            if ( 2*riverob.y  <= (frog_y+32) ):
+                frog_s2 = 2
+            # Check frog_e
+            if ( 2*(riverob.x + riverob.w) >= frog_x ):
+                frog_e2 = 2
+            # Check frog_w
+            if ( 2*riverob.x  <= (frog_x+32) ):
+                frog_w2 = 2
+
         # Check if there is a home in front of frog
         for home in obs['homeR']:
             # Only need to check frog_n
             if ( (home.y + home.h) >= frog_y ):
                 frog_n = 4
+            if ( 2*(home.y + home.h) >= frog_y ):
+                frog_n2 = 4
 
-    return State(frog_x,frog_y,frog_n,frog_s,frog_e,frog_w)
+    return State(frog_x,frog_y,frog_n,frog_n2,frog_s,frog_s2,frog_e,frog_e2,frog_w,frog_w2)
 
 def readConfigFile(config_filename,n_table_filename):
     # Open, read in, and close it config file.
     open_configuration = open(config_filename, 'rb')
-    open_n = open(n_table_filename, 'rb')
+    #open_n = open(n_table_filename, 'rb')
     Q_TABLE = pickle.load(open_configuration)
-    N_TABLE = pickle.load(open_n)
+    #N_TABLE = pickle.load(open_n)
     open_configuration.close()
-    open_n.close()
+    #open_n.close()
 
-    return Q_TABLE, N_TABLE
+    return Q_TABLE#, N_TABLE
 
 def writeConfigFile(config_filename, n_table_filename):
     # Open, write out Q-table, and close it config file.
     open_configuration = open(config_filename, 'wb')
-    open_n = open(n_table_filename, 'wb')
+    #open_n = open(n_table_filename, 'wb')
     pickle.dump(Q_TABLE, open_configuration)
-    pickle.dump(N_TABLE, open_n)
+    #pickle.dump(N_TABLE, open_n)
     open_configuration.close()
-    open_n.close()
+    #open_n.close()
 
 game = frogger_new.Frogger()
 fps = 30
@@ -230,7 +326,7 @@ if ( start_of_game ):
     N_TABLE = dict()
 
     # Initialize start state - modified
-    start_state = State(state['frog_x'], state['frog_y'], 0, 0, 0, 0 )
+    start_state = State(state['frog_x'], state['frog_y'], 0, 0, 0, 0, 0, 0, 0, 0 )
   
      # Create Q0 here for every possible action
     #   Q0(start_state,K_F15) = 0
