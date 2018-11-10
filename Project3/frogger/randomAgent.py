@@ -8,28 +8,59 @@ import random
 import pickle
 
 
-# state representation:
-#  
-# 'frog_x':  x position of frog
-# 'frog_y':  y position of frog
-# 'frog_n':  value for what is directly north of frog
-# 'frog_n2': value for what is directly two north of frog
-# 'frog_s':  value for what is directly south of frog
-# 'frog_s2': value for what is directly two south of frog
-# 'frog_e':  value for what is directly east of frog
-# 'frog_e2': value for what is directly two east of frog
-# 'frog_w':  value for what is directly west of frog
-# 'frog_w2':  value for what is directly two west of frog
-#   
-#
-# possible values for frog_n,s,e,w:
-#   0 = road
-#   1 = car
-#   2 = turtle/log 
-#   3 = water
-#   4 = home
-class State:
-    
+class State1:
+
+    # state representation:
+    #  
+    # 'frog_x':  x position of frog
+    # 'frog_y':  y position of frog
+    # 'frog_n':  value for what is directly north of frog
+    # 'frog_n2': value for what is directly two north of frog
+    # 'frog_s':  value for what is directly south of frog
+    #   
+    #
+    # possible values for frog_n,s,e,w:
+    #   0 = road
+    #   1 = car
+    #   2 = turtle/log 
+    #   3 = water
+    #   4 = home
+    def __init__(self, frog_x, frog_y, frog_n, frog_s, frog_e, frog_w):
+        self.frog_x = frog_x
+        self.frog_y = frog_y
+        self.frog_n = frog_n
+        self.frog_s = frog_s
+        self.frog_e = frog_e
+        self.frog_w = frog_w
+        
+    def __eq__(self, other):
+        return isinstance(other, State1) and self.frog_x == other.frog_x and self.frog_y == other.frog_y and self.frog_n == other.frog_n and self.frog_s == other.frog_s and self.frog_e == other.frog_e and self.frog_w == other.frog_w
+
+    def __hash__(self):
+        return hash(str(self.frog_x) + str(self.frog_y) + str(self.frog_n) + str(self.frog_s) + str(self.frog_e) + str(self.frog_w))
+  
+class State2:
+
+    # state representation:
+    #  
+    # 'frog_x':  x position of frog
+    # 'frog_y':  y position of frog
+    # 'frog_n':  value for what is directly north of frog
+    # 'frog_n2': value for what is directly two north of frog
+    # 'frog_s':  value for what is directly south of frog
+    # 'frog_s2': value for what is directly two south of frog
+    # 'frog_e':  value for what is directly east of frog
+    # 'frog_e2': value for what is directly two east of frog
+    # 'frog_w':  value for what is directly west of frog
+    # 'frog_w2':  value for what is directly two west of frog
+    #   
+    #
+    # possible values for frog_n,s,e,w:
+    #   0 = road
+    #   1 = car
+    #   2 = turtle/log 
+    #   3 = water
+    #   4 = home
     def __init__(self, frog_x, frog_y, frog_n, frog_n2, frog_s, frog_s2, frog_e, frog_e2, frog_w, frog_w2):
         self.frog_x = frog_x
         self.frog_y = frog_y
@@ -43,12 +74,13 @@ class State:
         self.frog_w2 = frog_w2
         
     def __eq__(self, other):
-        return isinstance(other, State) and self.frog_x == other.frog_x and self.frog_y == other.frog_y and self.frog_n == other.frog_n and self.frog_s == other.frog_s and self.frog_e == other.frog_e and self.frog_w == other.frog_w and self.frog_n2 == other.frog_n2 and self.frog_s2 == other.frog_s2 and self.frog_e2 == other.frog_e2 and self.frog_w2 == other.frog_w2
+        return isinstance(other, State2) and self.frog_x == other.frog_x and self.frog_y == other.frog_y and self.frog_n == other.frog_n and self.frog_s == other.frog_s and self.frog_e == other.frog_e and self.frog_w == other.frog_w and self.frog_n2 == other.frog_n2 and self.frog_s2 == other.frog_s2 and self.frog_e2 == other.frog_e2 and self.frog_w2 == other.frog_w2
 
     def __hash__(self):
         return hash(str(self.frog_x) + str(self.frog_y) + str(self.frog_n) + str(self.frog_n2) + str(self.frog_s) + str(self.frog_s2) + str(self.frog_e) + str(self.frog_e2) + str(self.frog_w) + str(self.frog_w2))
     
 class NaiveAgent():
+    
     def __init__(self, actions):
         self.actions = actions
         self.step = 0
@@ -62,7 +94,7 @@ class NaiveAgent():
         # return K_F15
 
         # Must convert obs to state, then look it up in the Q_table
-        state = obsToState(obs)
+        state = obsToState2(obs)
 
         # If state is not in Q-table, add it
         if ( state not in Q_TABLE.keys() ):
@@ -86,8 +118,93 @@ class NaiveAgent():
 
             return np.argmax(Q_TABLE[state])
             #return np.argmax(curr_actions)
-                        
-def obsToState(obs):
+
+
+def obsToState1(obs):
+    
+    frog_x = obs['frog_x']
+    frog_y = obs['frog_y']
+   
+    # Check if frog is before median. If so only check car objects.
+    if ( frog_y < 229 ):
+
+        # If there isn't a car, then there is road
+        frog_n = 0
+        frog_s = 0
+        frog_e = 0
+        frog_w = 0
+  
+        # Check the position of every car
+        for car in obs['cars']:
+            # Check frog_n
+            if ( (car.y + car.h) >= frog_y ):
+                frog_n = 1
+            # Check frog_s
+            if ( car.y  <= (frog_y+32) ):
+                frog_s = 1
+            # Check frog_e
+            if ( (car.x + car.w) >= frog_x ):
+                frog_e = 1
+            # Check frog_w
+            if ( car.x  <= (frog_x+32) ):
+                frog_w = 1
+
+    # Frog is at the median
+    elif (frog_y == 261):
+        
+        # North of frog is either river or river object
+        frog_n = 3
+        # South of frog is either car or road
+        frog_s = 0
+        # East/West of frog is road
+        frog_e = 0
+        frog_w = 0
+
+        # Check north of frog for river object
+        for riverob in obs['rivers']:
+            # Check frog_n
+            if ( (riverob.y + riverob.h) >= frog_y ):
+                frog_n = 2
+
+        # Check south of frog for car
+        for car in obs['cars']:
+            # Check frog_s
+            if ( car.y  <= (frog_y+32) ):
+                frog_s = 1
+
+    # Frog is somewhere in the river
+    else:
+
+        # If there isn't a river object, then there is water
+        frog_n = 3
+        frog_s = 3
+        frog_e = 3
+        frog_w = 3
+
+        # Must check all river objects W
+        for riverob in obs['rivers']:
+            # Check frog_n
+            if ( (riverob.y + riverob.h) >= frog_y ):
+                frog_n = 2
+            # Check frog_s
+            if ( riverob.y  <= (frog_y+32) ):
+                frog_s = 2
+            # Check frog_e
+            if ( (riverob.x + riverob.w) >= frog_x ):
+                frog_e = 2
+            # Check frog_w
+            if ( riverob.x  <= (frog_x+32) ):
+                frog_w = 2
+
+        # Check if there is a home in front of frog
+        for home in obs['homeR']:
+            # Only need to check frog_n
+            if ( (home.y + home.h) >= frog_y ):
+                frog_n = 4
+
+    return State1(frog_x,frog_y,frog_n,frog_s,frog_e,frog_w)
+
+def obsToState2(obs):
     
     frog_x = obs['frog_x']
     frog_y = obs['frog_y']
@@ -197,7 +314,7 @@ def obsToState(obs):
             if ( (riverob.y + riverob.h) >= frog_y ):
                 frog_n = 2
             if ( 2*(riverob.y + riverob.h) >= frog_y ):
-                frog_n = 2
+                frog_n2 = 2
 
         # Check south of frog for car
         for car in obs['cars']:
@@ -205,7 +322,7 @@ def obsToState(obs):
             if ( car.y  <= (frog_y+32) ):
                 frog_s = 1
             if ( 2*car.y  <= (frog_y+32) ):
-                frog_s = 1
+                frog_s2 = 1
     # Frog is somewhere in the river
     else:
 
@@ -255,7 +372,7 @@ def obsToState(obs):
             if ( 2*(home.y + home.h) >= frog_y ):
                 frog_n2 = 4
 
-    return State(frog_x,frog_y,frog_n,frog_n2,frog_s,frog_s2,frog_e,frog_e2,frog_w,frog_w2)
+    return State2(frog_x,frog_y,frog_n,frog_n2,frog_s,frog_s2,frog_e,frog_e2,frog_w,frog_w2)
 
 def readConfigFile(config_filename,n_table_filename):
     # Open, read in, and close it config file.
@@ -326,7 +443,7 @@ if ( start_of_game ):
     N_TABLE = dict()
 
     # Initialize start state - modified
-    start_state = State(state['frog_x'], state['frog_y'], 0, 0, 0, 0, 0, 0, 0, 0 )
+    start_state = State2(state['frog_x'], state['frog_y'], 0, 0, 0, 0, 0, 0, 0, 0 )
   
      # Create Q0 here for every possible action
     #   Q0(start_state,K_F15) = 0
@@ -360,8 +477,8 @@ while ( True ):
     #continue
 
     next_obs = game.getGameState()
-    next_state = obsToState(next_obs)
-    reg_state = obsToState(state)
+    next_state = obsToState2(next_obs)
+    reg_state = obsToState2(state)
 
     
     # Increment N-table value
