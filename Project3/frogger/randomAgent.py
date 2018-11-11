@@ -3,6 +3,7 @@ import frogger_new
 import numpy as np
 from pygame.constants import K_w,K_a,K_s,K_d,K_F15
 from pygame import Rect
+from constants import *
 import sys
 import random
 import pickle
@@ -100,6 +101,7 @@ class State3:
     #   
     #
     # possible values for frog_#
+    #  -1 = beyond edge
     #   0 = road
     #   1 = car
     #   2 = turtle/log 
@@ -176,6 +178,8 @@ class NaiveAgent():
     #   reward   = reward you received for your last action/state
     #   obs      = current game state
     def pickAction(self, reward, obs):
+
+        return 4
 
         # Must convert obs to state, then look it up in the Q_table
         state = obsToState2(obs)
@@ -449,6 +453,81 @@ def obsToState2(obs):
 
     return State2(frog_n,frog_n2,frog_s,frog_s2,frog_e,frog_e2,frog_w,frog_w2)
 
+def obsToState3(obs):
+    # possible values for f#
+    #  -1 = beyond edge
+    #   0 = road
+    #   1 = car
+    #   2 = turtle/log 
+    #   3 = water
+    #   4 = home
+
+    frog_x = obs['frog_x']
+    frog_y = obs['frog_y']
+
+    # init all values to 0
+    f = np.zeros(24)
+
+    # Check every rectangle within 5x5 of frog 
+    # Start with f0 (top left)
+    left = frog_x - 64
+    top = frog_y - 64
+    w = h = 32
+    temp = Rect(left,top,w,h)
+    counter = 0
+
+    # Check if frog is near water set in front to water 
+    if ( frog_y <= 293):
+        # initialize f0-f4 to waters
+        f[0] = f[1] = f[2] = f[3] = f[4] = 3
+    if ( frog_y <= 261 ):
+        # initialize f5-59 to waters
+        f[5] = f[6] = f[7] = f[8] = f[9] = 3
+    # If frog in river, set behind to water
+    if ( frog_y <= 197 ):
+        # set f14-18 to waters
+        f[14] = f[15] = f[16] = f[17] = f[18] = 3
+    if ( frog_y <= 165 ):
+        # set f19-23 to waters
+        f[19] = f[20] = f[21] = f[22] = f[23] = 3
+
+
+    for i in range(24):
+
+        # Check edges
+        if ( top < 0 or top > 485 or left < 0 or left > 416):
+            f[i] = -1 
+
+        # Check if state reaches homes
+        if ( frog_y < kPlayYHomeLimit+64 ):
+            collideInd = temp.collidelist(obs['homeR'])
+            if ( collideInd != -1 ):
+                # Theres a home in sight of frog
+                f[i] = 4
+
+
+        # Reset X if gone too far
+        if ( i == 4 or i == 9 or i == 13 or i == 18 ):
+            left = frog_x - 64
+        else:
+            left = left + 32
+        
+        # Increment y
+        top = top + 32
+        
+
+
+
+
+    return State3(f[0],f[1],f[2],f[3],f[4],f[5],f[6],f[7],f[8],f[9],f[10],f[11], \
+                  f[12],f[13],f[14],f[15],f[16],f[17],f[18],f[19],f[20],f[21],f[22],f[23])
+
+
+
+
+
+
+
 def readConfigFile(config_filename):
     # Open, read in, and close it config file.
     open_configuration = open(config_filename, 'rb')
@@ -540,6 +619,9 @@ while ( True ):
 
     action = agent.pickAction(reward, state)
     reward = p.act(AVAILABLE_ACTIONS[action])
+
+    print "X ", state['frog_x']
+    print "Y ", state['frog_y']
 
     #print reward
     

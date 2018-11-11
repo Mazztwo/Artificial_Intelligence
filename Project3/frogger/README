@@ -34,7 +34,6 @@ reward is just an integer.  The state looks like this:
 
 'homes': 
 [0, 0, 0, 0, 0], 
-'rect_w': 24, 
 
 'cars': 
 [
@@ -73,7 +72,8 @@ rect(70, 294, 54, 20)>,
 
 'frog_y': 485.0, 
 'frog_x': 224.0, 
-'rect_h': 24}
+'rect_h': 24,
+'rect_w': 24, }
 
 where 'homeR' is the locations of the frog homes, 
 'homes' is a list of
