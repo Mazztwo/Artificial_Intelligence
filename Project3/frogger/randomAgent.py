@@ -15,8 +15,9 @@ class State1:
     # 'frog_x':  x position of frog
     # 'frog_y':  y position of frog
     # 'frog_n':  value for what is directly north of frog
-    # 'frog_n2': value for what is directly two north of frog
     # 'frog_s':  value for what is directly south of frog
+    # 'frog_e':  value for what is directly east of frog
+    # 'frog_w':  value for what is directly west of frog
     #   
     #
     # possible values for frog_n,s,e,w:
@@ -25,6 +26,11 @@ class State1:
     #   2 = turtle/log 
     #   3 = water
     #   4 = home
+    #
+    #           X
+    #        X frog X
+    #           X
+
     def __init__(self, frog_x, frog_y, frog_n, frog_s, frog_e, frog_w):
         self.frog_x = frog_x
         self.frog_y = frog_y
@@ -43,8 +49,6 @@ class State2:
 
     # state representation:
     #  
-    # 'frog_x':  x position of frog
-    # 'frog_y':  y position of frog
     # 'frog_n':  value for what is directly north of frog
     # 'frog_n2': value for what is directly two north of frog
     # 'frog_s':  value for what is directly south of frog
@@ -61,9 +65,15 @@ class State2:
     #   2 = turtle/log 
     #   3 = water
     #   4 = home
-    def __init__(self, frog_x, frog_y, frog_n, frog_n2, frog_s, frog_s2, frog_e, frog_e2, frog_w, frog_w2):
-        self.frog_x = frog_x
-        self.frog_y = frog_y
+    #
+    #
+    ##          X
+    #           X
+    #      X  X frog X X
+    #           X
+    #           X
+    #
+    def __init__(self, frog_n, frog_n2, frog_s, frog_s2, frog_e, frog_e2, frog_w, frog_w2):
         self.frog_n = frog_n
         self.frog_s = frog_s
         self.frog_e = frog_e
@@ -74,11 +84,87 @@ class State2:
         self.frog_w2 = frog_w2
         
     def __eq__(self, other):
-        return isinstance(other, State2) and self.frog_x == other.frog_x and self.frog_y == other.frog_y and self.frog_n == other.frog_n and self.frog_s == other.frog_s and self.frog_e == other.frog_e and self.frog_w == other.frog_w and self.frog_n2 == other.frog_n2 and self.frog_s2 == other.frog_s2 and self.frog_e2 == other.frog_e2 and self.frog_w2 == other.frog_w2
+        return isinstance(other, State2) and self.frog_n == other.frog_n and self.frog_s == other.frog_s and self.frog_e == other.frog_e and self.frog_w == other.frog_w and self.frog_n2 == other.frog_n2 and self.frog_s2 == other.frog_s2 and self.frog_e2 == other.frog_e2 and self.frog_w2 == other.frog_w2
 
     def __hash__(self):
-        return hash(str(self.frog_x) + str(self.frog_y) + str(self.frog_n) + str(self.frog_n2) + str(self.frog_s) + str(self.frog_s2) + str(self.frog_e) + str(self.frog_e2) + str(self.frog_w) + str(self.frog_w2))
+        return hash(str(self.frog_n) + str(self.frog_n2) + str(self.frog_s) + str(self.frog_s2) + str(self.frog_e) + str(self.frog_e2) + str(self.frog_w) + str(self.frog_w2))
     
+class State3:
+    
+    # state representation:
+    #
+    # 'frog_0'  'frog_5'    'frog_10'   'frog_15'   'frog_20'
+    # 'frog_1'  'frog_6'    'frog_11'   'frog_16'   'frog_21'
+    # 'frog_2'  'frog_7'    'frog_12'   'frog_17'   'frog_22'
+    # 'frog_3'  'frog_8'    'frog_13'   'frog_18'   'frog_23'
+    #   
+    #
+    # possible values for frog_#
+    #   0 = road
+    #   1 = car
+    #   2 = turtle/log 
+    #   3 = water
+    #   4 = home
+    #
+    #     0  1  2  3  4
+    #     5  6  7  8  9  
+    #    10 11 frg 12 13
+    #    14 15  16 17 18
+    #    19 20  21 22 23
+    #    
+    #     X  X  X  X  X
+    #     X  X  X  X  X
+    #     X  X frg X  X
+    #     X  X  X  X  X
+    #     X  X  X  X  X
+    #
+    def __init__(self, f0,f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f21,f22,f23):
+        self.f0 = f0
+        self.f1 = f1
+        self.f2 = f2
+        self.f3 = f3
+        self.f4 = f4
+        self.f5 = f5
+        self.f6 = f6
+        self.f7 = f7
+        self.f8 = f8
+        self.f9 = f9
+        self.f10 = f10
+        self.f11 = f11
+        self.f12 = f12
+        self.f13 = f13
+        self.f14 = f14
+        self.f15 = f15
+        self.f16 = f16
+        self.f17 = f17
+        self.f18 = f18
+        self.f19 = f19
+        self.f20 = f20
+        self.f21 = f21
+        self.f22 = f22
+        self.f23 = f23
+        
+    def __eq__(self, other):
+        return isinstance(other, State3) and self.f0 == other.f0 and self.f1 == other.f1 \
+                                         and self.f2 == other.f2 and self.f3 == other.f3 \
+                                         and self.f4 == other.f4 and self.f5 == other.f5 \
+                                         and self.f6 == other.f6 and self.f7 == other.f7 \
+                                         and self.f8 == other.f8 and self.f9 == other.f9 \
+                                         and self.f10 == other.f10 and self.f11 == other.f11 \
+                                         and self.f12 == other.f12 and self.f13 == other.f13 \
+                                         and self.f14 == other.f14 and self.f15 == other.f15 \
+                                         and self.f16 == other.f16 and self.f17 == other.f17 \
+                                         and self.f18 == other.f18 and self.f19 == other.f19 \
+                                         and self.f20 == other.f20 and self.f21 == other.f21 \
+                                         and self.f22 == other.f22 and self.f23 == other.f23 
+
+    def __hash__(self):
+        return hash(str(self.f0) + str(self.f1) + str(self.f2) + str(self.f3) + str(self.f4) \
+                  + str(self.f5) + str(self.f6) + str(self.f7) + str(self.f8) + str(self.f9) \
+                  + str(self.f10) + str(self.f11) + str(self.f12) + str(self.f13) + str(self.f14) \
+                  + str(self.f15) + str(self.f16) + str(self.f17) + str(self.f18) + str(self.f19) \
+                  + str(self.f20) + str(self.f21) + str(self.f22) + str(self.f23))
+
 class NaiveAgent():
     
     def __init__(self, actions):
@@ -91,8 +177,6 @@ class NaiveAgent():
     #   obs      = current game state
     def pickAction(self, reward, obs):
 
-        # return K_F15
-
         # Must convert obs to state, then look it up in the Q_table
         state = obsToState2(obs)
 
@@ -100,25 +184,16 @@ class NaiveAgent():
         if ( state not in Q_TABLE.keys() ):
             Q_TABLE[state] = np.zeros(NUM_ACTIONS)
 
-        # If state is not in N-table, add it
-        #if ( state not in N_TABLE.keys() ):
-        #    N_TABLE[state] = np.zeros(NUM_ACTIONS)
-
         # Pick a random action at first, else return the normal argmax
         # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
         if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
-            # Put an extra forward here
-            return random.choice([0,1,2,3,4]) 
+            # Put an extra forward here istead of no-op
+            return random.choice([0,1,2,3,0]) 
 
         else:
             # Return argmax of (state + inflation factor)
-            #curr_actions = Q_TABLE[state]
-            #for i in range(NUM_ACTIONS):
-            #    curr_actions[i] = curr_actions[i] + (F_CONSTANT / 1 + N_TABLE[state][i])
-
+     
             return np.argmax(Q_TABLE[state])
-            #return np.argmax(curr_actions)
-
 
 def obsToState1(obs):
     
@@ -372,27 +447,34 @@ def obsToState2(obs):
             if ( 2*(home.y + home.h) >= frog_y ):
                 frog_n2 = 4
 
-    return State2(frog_x,frog_y,frog_n,frog_n2,frog_s,frog_s2,frog_e,frog_e2,frog_w,frog_w2)
+    return State2(frog_n,frog_n2,frog_s,frog_s2,frog_e,frog_e2,frog_w,frog_w2)
 
-def readConfigFile(config_filename,n_table_filename):
+def readConfigFile(config_filename):
     # Open, read in, and close it config file.
     open_configuration = open(config_filename, 'rb')
-    #open_n = open(n_table_filename, 'rb')
     Q_TABLE = pickle.load(open_configuration)
-    #N_TABLE = pickle.load(open_n)
-    open_configuration.close()
-    #open_n.close()
 
-    return Q_TABLE#, N_TABLE
+    return Q_TABLE
 
-def writeConfigFile(config_filename, n_table_filename):
+def writeConfigFile(config_filename):
     # Open, write out Q-table, and close it config file.
     open_configuration = open(config_filename, 'wb')
-    #open_n = open(n_table_filename, 'wb')
     pickle.dump(Q_TABLE, open_configuration)
-    #pickle.dump(N_TABLE, open_n)
     open_configuration.close()
-    #open_n.close()
+
+# Initial start of game flag from command line
+#   if command line argument = 'start', then it's the very beginning of the  game (first time running), training from scratch
+#   if command line argument = 'continue', then it's some iteration of the game other than the first, training from previously calculated Q-table
+cmd_arg = sys.argv[1]
+
+if ( cmd_arg == "start" ):
+    start_of_game = 1
+elif ( cmd_arg == "continue" ):
+    start_of_game = 0
+else:
+    print "Please input 'start' to begin training from scratch and 'continue' to use a config file."
+    exit()
+
 
 game = frogger_new.Frogger()
 fps = 30
@@ -403,9 +485,8 @@ reward = 0.0
 # PARAMATERS
 ###################
 DISCOUNT = 0.9
-ALPHA = 0.6
-EXPLORATION_FACTOR = 0.15
-F_CONSTANT = 2
+ALPHA = 0.2
+EXPLORATION_FACTOR = 0.1
 ###################
 
 # Available actions to agent
@@ -414,15 +495,8 @@ AVAILABLE_ACTIONS = [K_w, K_s, K_a, K_d, K_F15]
 # no-op, up, down, left, right
 NUM_ACTIONS = 5
 
-# Initial start of game flag from command line
-#   if flag = 1, then it's the very beginning of the  game (first time running), training from scratch
-#   if flag = 0, then it's some iteration of the game other than the first, training from previously calculated Q-table
-start_of_game = int(sys.argv[1])
-
 # File where Q-table is stored
 config_filename = 'FROG.config'
-# File where N-table is stored
-n_table_filename = "N.config"
 
 # Initial vanilla game state
 state = game.getGameState()
@@ -440,10 +514,9 @@ if ( start_of_game ):
     #    
     # etc..
     Q_TABLE = dict()
-    N_TABLE = dict()
 
     # Initialize start state - modified
-    start_state = State2(state['frog_x'], state['frog_y'], 0, 0, 0, 0, 0, 0, 0, 0 )
+    start_state = State2(0, 0, 0, 0, 0, 0, 0, 0 )
   
      # Create Q0 here for every possible action
     #   Q0(start_state,K_F15) = 0
@@ -452,49 +525,36 @@ if ( start_of_game ):
     #   Q0(start_state,K_a) = 0  
     #   Q0(start_state,K_d) = 0
     Q_TABLE[start_state] = np.zeros(NUM_ACTIONS)
-    N_TABLE[start_state] = np.zeros(NUM_ACTIONS)
 
 else:
 
-    # Read in Q_TABLE/N_TABLE from FROG.config and N.config
-    #Q_TABLE, N_TABLE = readConfigFile(config_filename, n_table_filename)
-    Q_TABLE = readConfigFile(config_filename, n_table_filename)
+    # Read in Q_TABLE from FROG.config
+    Q_TABLE = readConfigFile(config_filename)
 
 # Game loop
 while ( True ):
     if ( p.game_over() ):
         # Save Q_TABLE to file
-        writeConfigFile(config_filename, n_table_filename)
+        writeConfigFile(config_filename)
         p.reset_game()
 
     action = agent.pickAction(reward, state)
     reward = p.act(AVAILABLE_ACTIONS[action])
-    
-    # need to incentivize forward movement...
-    #if ( action == 1 ):
-    #    reward = reward + 0.1
-    #print reward
-    #continue
 
+    #print reward
+    
     next_obs = game.getGameState()
     next_state = obsToState2(next_obs)
     reg_state = obsToState2(state)
 
     
-    # Increment N-table value
-    #N_TABLE[reg_state][action] = N_TABLE[reg_state][action] + 1
-
     # If next_state is not in Q-table, add it
     if ( next_state not in Q_TABLE.keys() ):
         Q_TABLE[next_state] = np.zeros(NUM_ACTIONS)
 
-    # Check N table for new state
-    #if ( next_state not in N_TABLE.keys() ):
-    #    N_TABLE[next_state] = np.zeros(NUM_ACTIONS)
-
     # Update curr Q in Q-table
     currQ = Q_TABLE[reg_state][action]
-    Q_sample = reward +  DISCOUNT * np.max(Q_TABLE[next_state]) #+(F_CONSTANT / 1 + N_TABLE[next_state][action])) 
+    Q_sample = reward +  DISCOUNT * np.max(Q_TABLE[next_state]) 
     Q_TABLE[reg_state][action] = currQ + (ALPHA * (Q_sample - currQ))
 
     state = next_obs
