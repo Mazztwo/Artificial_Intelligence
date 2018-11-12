@@ -181,10 +181,8 @@ class NaiveAgent():
     #   obs      = current game state
     def pickAction(self, reward, obs):
 
-        return 4
-
         # Must convert obs to state, then look it up in the Q_table
-        state = obsToState2(obs)
+        state = obsToState3(obs)
 
         # If state is not in Q-table, add it
         if ( state not in Q_TABLE.keys() ):
@@ -193,12 +191,9 @@ class NaiveAgent():
         # Pick a random action at first, else return the normal argmax
         # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
         if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
-            # Put an extra forward here istead of no-op
-            return random.choice([0,1,2,3,0]) 
-
+            return random.choice([0,1,2,3,4]) 
         else:
-            # Return argmax of (state + inflation factor)
-     
+            # Return argmax
             return np.argmax(Q_TABLE[state])
 
 def obsToState1(obs):
@@ -476,7 +471,6 @@ def obsToState3(obs):
     top = frog_y - 64
     w = h = 32
     temp = Rect(left,top,w,h)
-    counter = 0
 
     # Check if frog is near water set in front to water 
     if ( frog_y <= 293):
@@ -513,7 +507,11 @@ def obsToState3(obs):
             collideInd = temp.collidelist(obs['homeR'])
             if ( collideInd != -1 ):
                 # Theres a home in sight of frog
-                f[i] = 4
+                # If home is not occupied, set square to home, else, set to water
+                if ( obs['homes'][collideInd] == 0 ):
+                    f[i] = 4
+                else:
+                    f[i] = 3
 
         # Check if state reaches river
         if ( frog_y < kPlayYRiverLimit+64 ):
@@ -542,12 +540,6 @@ def obsToState3(obs):
         
     return State3(f[0],f[1],f[2],f[3],f[4],f[5],f[6],f[7],f[8],f[9],f[10],f[11], \
                   f[13],f[14],f[15],f[16],f[17],f[18],f[19],f[20],f[21],f[22],f[23],f[24])
-
-
-
-
-
-
 
 def readConfigFile(config_filename):
     # Open, read in, and close it config file.
@@ -616,7 +608,7 @@ if ( start_of_game ):
     Q_TABLE = dict()
 
     # Initialize start state - modified
-    start_state = State2(0, 0, 0, 0, 0, 0, 0, 0 )
+    start_state = State3(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
   
      # Create Q0 here for every possible action
     #   Q0(start_state,K_F15) = 0
@@ -641,14 +633,11 @@ while ( True ):
     action = agent.pickAction(reward, state)
     reward = p.act(AVAILABLE_ACTIONS[action])
 
-    print "X ", state['frog_x']
-    print "Y ", state['frog_y']
-
     #print reward
     
     next_obs = game.getGameState()
-    next_state = obsToState2(next_obs)
-    reg_state = obsToState2(state)
+    next_state = obsToState3(next_obs)
+    reg_state = obsToState3(state)
 
     
     # If next_state is not in Q-table, add it
