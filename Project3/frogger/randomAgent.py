@@ -567,7 +567,6 @@ else:
     print "Please input 'start' to begin training from scratch and 'continue' to use a config file."
     exit()
 
-
 game = frogger_new.Frogger()
 fps = 30
 p = PLE(game, fps=fps,force_fps=False)
@@ -578,7 +577,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.2
-EXPLORATION_FACTOR = 0.1
+EXPLORATION_FACTOR = 0.5
 ###################
 
 # Available actions to agent
