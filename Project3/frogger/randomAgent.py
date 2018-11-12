@@ -94,10 +94,12 @@ class State3:
     
     # state representation:
     #
-    # 'frog_0'  'frog_5'    'frog_10'   'frog_15'   'frog_20'
-    # 'frog_1'  'frog_6'    'frog_11'   'frog_16'   'frog_21'
-    # 'frog_2'  'frog_7'    'frog_12'   'frog_17'   'frog_22'
-    # 'frog_3'  'frog_8'    'frog_13'   'frog_18'   'frog_23'
+    #   SKIPS 12 BECAUSE THAT IS FROG 
+    #
+    # 'frog_0'  'frog_4'    'frog_8'   'frog_13'   'frog_17'    'frog_21'
+    # 'frog_1'  'frog_5'    'frog_9'   'frog_14'   'frog_18'    'frog_22'
+    # 'frog_2'  'frog_6'    'frog_10'  'frog_15'   'frog_19'    'frog_23'
+    # 'frog_3'  'frog_7'    'frog_11'  'frog_16'   'frog_20'    'frog_24'
     #   
     #
     # possible values for frog_#
@@ -110,9 +112,9 @@ class State3:
     #
     #     0  1  2  3  4
     #     5  6  7  8  9  
-    #    10 11 frg 12 13
-    #    14 15  16 17 18
-    #    19 20  21 22 23
+    #     10 11 F 13 14
+    #     15 16 17 18 19
+    #     20 21 22 23 24
     #    
     #     X  X  X  X  X
     #     X  X  X  X  X
@@ -120,7 +122,7 @@ class State3:
     #     X  X  X  X  X
     #     X  X  X  X  X
     #
-    def __init__(self, f0,f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13,f14,f15,f16,f17,f18,f19,f20,f21,f22,f23):
+    def __init__(self, f0,f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f13,f14,f15,f16,f17,f18,f19,f20,f21,f22,f23,f24):
         self.f0 = f0
         self.f1 = f1
         self.f2 = f2
@@ -133,7 +135,6 @@ class State3:
         self.f9 = f9
         self.f10 = f10
         self.f11 = f11
-        self.f12 = f12
         self.f13 = f13
         self.f14 = f14
         self.f15 = f15
@@ -145,6 +146,7 @@ class State3:
         self.f21 = f21
         self.f22 = f22
         self.f23 = f23
+        self.f24 = f24
         
     def __eq__(self, other):
         return isinstance(other, State3) and self.f0 == other.f0 and self.f1 == other.f1 \
@@ -153,19 +155,19 @@ class State3:
                                          and self.f6 == other.f6 and self.f7 == other.f7 \
                                          and self.f8 == other.f8 and self.f9 == other.f9 \
                                          and self.f10 == other.f10 and self.f11 == other.f11 \
-                                         and self.f12 == other.f12 and self.f13 == other.f13 \
-                                         and self.f14 == other.f14 and self.f15 == other.f15 \
-                                         and self.f16 == other.f16 and self.f17 == other.f17 \
-                                         and self.f18 == other.f18 and self.f19 == other.f19 \
-                                         and self.f20 == other.f20 and self.f21 == other.f21 \
-                                         and self.f22 == other.f22 and self.f23 == other.f23 
+                                         and self.f13 == other.f13 and self.f14 == other.f14 \
+                                         and self.f15 == other.f15 and self.f16 == other.f16 \
+                                         and self.f17 == other.f17 and self.f18 == other.f18 \
+                                         and self.f19 == other.f19 and self.f20 == other.f20 \
+                                         and self.f21 == other.f21 and self.f22 == other.f22 \
+                                         and self.f23 == other.f23 and self.f24 == other.f24 
 
     def __hash__(self):
         return hash(str(self.f0) + str(self.f1) + str(self.f2) + str(self.f3) + str(self.f4) \
                   + str(self.f5) + str(self.f6) + str(self.f7) + str(self.f8) + str(self.f9) \
-                  + str(self.f10) + str(self.f11) + str(self.f12) + str(self.f13) + str(self.f14) \
+                  + str(self.f10) + str(self.f11) + str(self.f13) + str(self.f14) \
                   + str(self.f15) + str(self.f16) + str(self.f17) + str(self.f18) + str(self.f19) \
-                  + str(self.f20) + str(self.f21) + str(self.f22) + str(self.f23))
+                  + str(self.f20) + str(self.f21) + str(self.f22) + str(self.f23) + str(self.f24))
 
 class NaiveAgent():
     
@@ -466,7 +468,7 @@ def obsToState3(obs):
     frog_y = obs['frog_y']
 
     # init all values to 0
-    f = np.zeros(24)
+    f = np.zeros(25)
 
     # Check every rectangle within 5x5 of frog 
     # Start with f0 (top left)
@@ -481,21 +483,29 @@ def obsToState3(obs):
         # initialize f0-f4 to waters
         f[0] = f[1] = f[2] = f[3] = f[4] = 3
     if ( frog_y <= 261 ):
-        # initialize f5-59 to waters
+        # initialize f5-f9 to waters
         f[5] = f[6] = f[7] = f[8] = f[9] = 3
     # If frog in river, set behind to water
     if ( frog_y <= 197 ):
-        # set f14-18 to waters
-        f[14] = f[15] = f[16] = f[17] = f[18] = 3
+        # set f15-19 to waters
+        f[15] = f[16] = f[17] = f[18] = f[19] = 3
     if ( frog_y <= 165 ):
-        # set f19-23 to waters
-        f[19] = f[20] = f[21] = f[22] = f[23] = 3
+        # set f20-24 to waters
+        f[20] = f[21] = f[22] = f[23] = f[24] = 3
 
 
-    for i in range(24):
+    for i in range(25):
+        
+        # Frog pos --> Skip this position
+        if ( i == 12 ):
+            # update left accordingly
+            left = left + 32
+            temp = Rect(left,top,w,h)
+            continue
 
+        # All other squares
         # Check edges
-        if ( top < 0 or top > 485 or left < 0 or left > 416):
+        if ( top < 0 or top > 517 or left < 0 or left > 448):
             f[i] = -1 
 
         # Check if state reaches homes
@@ -505,22 +515,33 @@ def obsToState3(obs):
                 # Theres a home in sight of frog
                 f[i] = 4
 
+        # Check if state reaches river
+        if ( frog_y < kPlayYRiverLimit+64 ):
+            collideInd = temp.collidelist(obs['rivers'])
+            if ( collideInd != -1 ):
+                # Theres a log/turtle in sight of frog
+                f[i] = 2
 
-        # Reset X if gone too far
-        if ( i == 4 or i == 9 or i == 13 or i == 18 ):
+        # Check cars
+        collideInd = temp.collidelist(obs['cars'])
+        if ( collideInd != -1 ):
+            # Theres a car in sight of frog
+            f[i] = 1
+
+        # Update X/Y
+        # Reset X and Y if gone too far
+        if ( i == 4 or i == 9 or i == 14 or i == 19 ):
             left = frog_x - 64
+            # Increment y
+            top = top + 32
         else:
             left = left + 32
         
-        # Increment y
-        top = top + 32
+        # recalculate temp
+        temp = Rect(left,top,w,h)
         
-
-
-
-
     return State3(f[0],f[1],f[2],f[3],f[4],f[5],f[6],f[7],f[8],f[9],f[10],f[11], \
-                  f[12],f[13],f[14],f[15],f[16],f[17],f[18],f[19],f[20],f[21],f[22],f[23])
+                  f[13],f[14],f[15],f[16],f[17],f[18],f[19],f[20],f[21],f[22],f[23],f[24])
 
 
 
