@@ -577,7 +577,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.2
-EXPLORATION_FACTOR = 0.4
+EXPLORATION_FACTOR = 0.1
 ###################
 
 # Available actions to agent
