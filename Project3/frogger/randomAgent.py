@@ -194,7 +194,12 @@ class NaiveAgent():
             return random.choice([0,1,2,3,4]) 
         else:
             # Return argmax
-            return np.argmax(Q_TABLE[state])
+            # Avoids random state crash
+            try:
+                max = np.argmax(Q_TABLE[state])
+                return max
+            except:
+                return 0
 
 def obsToState1(obs):
     
@@ -643,11 +648,17 @@ while ( True ):
     if ( next_state not in Q_TABLE.keys() ):
         Q_TABLE[next_state] = np.zeros(NUM_ACTIONS)
 
-    # Update curr Q in Q-table
-    currQ = Q_TABLE[reg_state][action]
-    Q_sample = reward +  DISCOUNT * np.max(Q_TABLE[next_state]) 
-    Q_TABLE[reg_state][action] = currQ + (ALPHA * (Q_sample - currQ))
-
+    # Avoids random state crash
+    try:
+        # Update curr Q in Q-table
+        currQ = Q_TABLE[reg_state][action]
+        Q_sample = reward +  DISCOUNT * np.max(Q_TABLE[next_state]) 
+        Q_TABLE[reg_state][action] = currQ + (ALPHA * (Q_sample - currQ))
+    except:
+        # If crash, move on
+        state = next_obs
+        continue
+        
     state = next_obs
 
 
