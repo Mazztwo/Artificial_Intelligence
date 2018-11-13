@@ -3,7 +3,7 @@ import frogger_new
 import numpy as np
 from pygame.constants import K_w,K_a,K_s,K_d,K_F15
 from pygame import Rect
-from constants import *
+from constants import kPlayYHomeLimit, kPlayYRiverLimit
 import sys
 import random
 import pickle
@@ -577,7 +577,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.2
-EXPLORATION_FACTOR = 0.5
+EXPLORATION_FACTOR = 0.4
 ###################
 
 # Available actions to agent
