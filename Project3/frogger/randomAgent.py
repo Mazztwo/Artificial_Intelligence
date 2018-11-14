@@ -191,6 +191,7 @@ class NaiveAgent():
         # Pick a random action at first, else return the normal argmax
         # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
         if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
+            print "RANDOM!"
             return random.choice([0,1,2,3,4]) 
         else:
             # Return argmax
@@ -582,7 +583,7 @@ reward = 0.0
 ###################
 DISCOUNT = 0.9
 ALPHA = 0.2
-EXPLORATION_FACTOR = 0.1
+EXPLORATION_FACTOR = 0
 ###################
 
 # Available actions to agent
