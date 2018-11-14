@@ -191,7 +191,6 @@ class NaiveAgent():
         # Pick a random action at first, else return the normal argmax
         # Take a random action (chosen uniformly). A larger value for EXPLORATION_FACTOR will increase exploration.
         if ( random.uniform(0, 1) < EXPLORATION_FACTOR ):
-            print "RANDOM!"
             return random.choice([0,1,2,3,4]) 
         else:
             # Return argmax
@@ -628,11 +627,17 @@ else:
     # Read in Q_TABLE from FROG.config
     Q_TABLE = readConfigFile(config_filename)
 
+
+save_counter = 0
+
 # Game loop
 while ( True ):
     if ( p.game_over() ):
-        # Save Q_TABLE to file
-        writeConfigFile(config_filename)
+        # Save Q_TABLE to file every 10 iterations
+        if ( save_counter == 10 ):
+            writeConfigFile(config_filename)
+        else:
+            save_counter = save_counter + 1
         p.reset_game()
 
     action = agent.pickAction(reward, state)
