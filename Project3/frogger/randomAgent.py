@@ -637,6 +637,7 @@ while ( True ):
         # Save Q_TABLE to file every 10 iterations
         if ( save_counter == 9 ):
             writeConfigFile(config_filename)
+            save_counter = 0
         else:
             save_counter = save_counter + 1
         p.reset_game()
