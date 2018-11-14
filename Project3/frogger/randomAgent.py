@@ -633,8 +633,9 @@ save_counter = 0
 # Game loop
 while ( True ):
     if ( p.game_over() ):
+        print save_counter, " / 9"
         # Save Q_TABLE to file every 10 iterations
-        if ( save_counter == 10 ):
+        if ( save_counter == 9 ):
             writeConfigFile(config_filename)
         else:
             save_counter = save_counter + 1
