@@ -602,11 +602,11 @@ if ( start_of_game ):
 
     # Q-Table structure
     # 
-    #   state | K_F15 | K_w | K_s | K_a | K_d |
-    #   ------|-------|-----|-----|-----|-----|
-    #    s1   |  0.0  | 0.0 | 0.0 | 0.0 | 0.0 |  
-    #    s2   |  0.0  | 0.0 | 0.0 | 0.0 | 0.0 | 
-    #    s3   |  0.0  | 0.0 | 0.0 | 0.0 | 0.0 | 
+    #   state | K_w | K_s | K_a | K_d | K_F15 |
+    #   ------|-----|-----|-----|-----|-------|
+    #    s1   | 0.0 | 0.0 | 0.0 | 0.0 |  0.0  |
+    #    s2   | 0.0 | 0.0 | 0.0 | 0.0 |  0.0  |
+    #    s3   | 0.0 | 0.0 | 0.0 | 0.0 |  0.0  |
     #    
     # etc..
     Q_TABLE = dict()
@@ -627,13 +627,15 @@ else:
     # Read in Q_TABLE from FROG.config
     Q_TABLE = readConfigFile(config_filename)
 
-
+# Counters to keep track of number of plays and total reward per game
 save_counter = 0
+#tot_reward = 0
 
 # Game loop
 while ( True ):
     if ( p.game_over() ):
-        print save_counter, " / 9"
+        #print tot_reward
+        # tot_reward = 0
         # Save Q_TABLE to file every 10 iterations
         if ( save_counter == 9 ):
             writeConfigFile(config_filename)
@@ -645,8 +647,8 @@ while ( True ):
     action = agent.pickAction(reward, state)
     reward = p.act(AVAILABLE_ACTIONS[action])
 
-    #print reward
-    
+    tot_reward = tot_reward + reward
+
     next_obs = game.getGameState()
     next_state = obsToState3(next_obs)
     reg_state = obsToState3(state)
