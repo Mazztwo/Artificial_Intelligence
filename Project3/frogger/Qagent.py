@@ -647,7 +647,7 @@ while ( True ):
     action = agent.pickAction(reward, state)
     reward = p.act(AVAILABLE_ACTIONS[action])
 
-    tot_reward = tot_reward + reward
+    # tot_reward = tot_reward + reward
 
     next_obs = game.getGameState()
     next_state = obsToState3(next_obs)
